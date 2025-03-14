@@ -52,33 +52,27 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  // Toggle the visibility of the update form
   toggleUpdateForm(): void {
     this.showUpdateForm = !this.showUpdateForm;
 
-    // Reset form state when hiding the form
     if (!this.showUpdateForm) {
       this.successMessage = '';
       this.errorMessage = '';
 
-      // Reset password fields
       this.profileForm.patchValue({
         password: '',
         confirmPassword: ''
       });
 
-      // Reset form validation
       this.profileForm.markAsPristine();
       this.profileForm.markAsUntouched();
     }
   }
 
-  // Custom validator to check if passwords match
   passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
 
-    // Only validate if both fields have values
     if (password && confirmPassword) {
       return password === confirmPassword ? null : { 'passwordMismatch': true };
     }
@@ -87,7 +81,6 @@ export class ProfileComponent implements OnInit {
 
   onSubmit(): void {
     if (this.profileForm.invalid) {
-      // Mark all fields as touched to trigger validation messages
       Object.keys(this.profileForm.controls).forEach(key => {
         this.profileForm.get(key)?.markAsTouched();
       });
@@ -98,7 +91,6 @@ export class ProfileComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    // Only include password if it's provided
     const updateData: any = {
       username: this.profileForm.value.username,
       email: this.profileForm.value.email
@@ -115,7 +107,6 @@ export class ProfileComponent implements OnInit {
             this.isSubmitting = false;
             this.successMessage = 'Profile updated successfully!';
 
-            // Update the user in local storage and auth service
             const updatedUser: User = {
               id: this.currentUser!.id,
               username: updateData.username,
@@ -125,13 +116,11 @@ export class ProfileComponent implements OnInit {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             this.authService.currentUserSubject.next(updatedUser);
 
-            // Clear password fields
             this.profileForm.patchValue({
               password: '',
               confirmPassword: ''
             });
 
-            // Hide the update form after successful update
             setTimeout(() => {
               this.showUpdateForm = false;
             }, 3000);
