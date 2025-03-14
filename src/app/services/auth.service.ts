@@ -21,12 +21,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  expiresIn: number;
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-  };
+  expiresIn?: number;
+  user?: User;
 }
 
 export interface User {
@@ -40,11 +36,11 @@ export interface User {
 })
 export class AuthService {
   private apiUrl = 'http://localhost:8080/auth';
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-
+  public currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
+    // Load user from localStorage on service initialization
     this.loadUserFromStorage();
   }
 
@@ -57,6 +53,7 @@ export class AuthService {
         const user = JSON.parse(userStr);
         this.currentUserSubject.next(user);
       } catch (e) {
+        // If parsing fails, clear potentially corrupted data
         localStorage.removeItem('user');
         localStorage.removeItem('auth_token');
       }
@@ -76,35 +73,42 @@ export class AuthService {
           console.log('Raw login response:', response);
 
           if (response && response.token) {
+            // Store token in localStorage
             localStorage.setItem('auth_token', response.token);
 
+            // Create user object from available data
             let userData: User;
 
             if (response.user) {
+              // If API returns user object, use it directly
               userData = {
                 id: response.user.id,
                 username: response.user.username,
                 email: response.user.email
               };
             } else {
+              // If API doesn't return a user object, try to extract from JWT token
               try {
                 const tokenPayload = this.decodeJwtToken(response.token);
                 userData = {
                   id: tokenPayload.id || 0,
-                  username: tokenPayload.sub || email.split('@')[0],
+                  username: tokenPayload.sub || email.split('@')[0], // Try to get from token or use email username
                   email: tokenPayload.email || email
                 };
               } catch (error) {
+                // Fallback to basic user info
                 userData = {
                   id: 0,
-                  username: email.split('@')[0],
+                  username: email.split('@')[0], // Use first part of email as username
                   email: email
                 };
               }
             }
 
+            // Store user data in localStorage
             localStorage.setItem('user', JSON.stringify(userData));
 
+            // Update currentUserSubject
             this.currentUserSubject.next(userData);
 
             console.log('User data stored:', userData);
@@ -114,14 +118,8 @@ export class AuthService {
   }
 
   logout(): void {
-    try {
-      this.http.post<any>(`${this.apiUrl}/logout`, {}).subscribe({
-        next: () => this.clearUserData(),
-        error: () => this.clearUserData()
-      });
-    } catch {
-      this.clearUserData();
-    }
+    // Clear user data and navigate to login
+    this.clearUserData();
   }
 
   clearUserData(): void {
@@ -142,10 +140,6 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  checkToken(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/check-token`);
-  }
-
   /**
    * Decode JWT token to get payload data
    * @param token JWT token string
@@ -153,20 +147,18 @@ export class AuthService {
    */
   private decodeJwtToken(token: string): any {
     try {
+      // JWT token is split into three parts separated by dots
       const parts = token.split('.');
       if (parts.length !== 3) {
         throw new Error('Invalid JWT token format');
       }
 
+      // The payload is the second part
       const base64Payload = parts[1];
       const base64 = base64Payload.replace(/-/g, '+').replace(/_/g, '/');
 
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
+      // Decode base64
+      const jsonPayload = atob(base64);
 
       return JSON.parse(jsonPayload);
     } catch (error) {
