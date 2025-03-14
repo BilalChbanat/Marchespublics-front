@@ -16,7 +16,7 @@
 
       <div *ngIf="!isLoggedIn" class="flex items-center space-x-3">
         <a routerLink="/login" class="text-gray-600 hover:text-blue-700">Login</a>
-        <a routerLink="/register"
+        <a routerLink="/signup"
            class="bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
           Register
         </a>
@@ -84,7 +84,7 @@
 
       <div *ngIf="!isLoggedIn" class="border-t border-gray-200 pt-2">
         <a routerLink="/login" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50">Login</a>
-        <a routerLink="/register" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50">Register</a>
+        <a routerLink="/signup" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50">Register</a>
       </div>
 
       <div *ngIf="isLoggedIn" class="border-t border-gray-200 pt-2">
