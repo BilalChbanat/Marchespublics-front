@@ -35,6 +35,10 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  // Add this getter to fix the unresolved variable error
+  get f() {
+    return this.loginForm.controls;
+  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
