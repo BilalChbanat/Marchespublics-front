@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router, RouterLink} from '@angular/router';
-import { AuthService, SignupRequest } from '../../services/auth.service';
+import { AuthService, SignupRequest } from '../../services/auth/auth.service';
 import {NgClass, NgIf} from '@angular/common';
 
 @Component({
