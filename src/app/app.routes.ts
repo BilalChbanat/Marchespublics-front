@@ -4,6 +4,7 @@ import {RegisterComponent} from './auth/register/register.component';
 import {LoginComponent} from './auth/login/login.component';
 import {ProfileComponent} from './auth/profile/profile.component';
 import {DepartmentComponent} from './department/department.component';
+import {CompanyComponent} from './company/company.component';
 
 export const routes: Routes = [
   {path: '', component: LangingComponent},
@@ -11,4 +12,5 @@ export const routes: Routes = [
   {path: 'login', component: LoginComponent},
   {path: 'profile', component: ProfileComponent},
   { path: 'departments', component: DepartmentComponent },
+  { path: 'company', component: CompanyComponent },
 ];
