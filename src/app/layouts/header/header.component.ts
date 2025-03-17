@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, HostListener, Directive, ElementRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIf } from '@angular/common';
-import { AuthService, User } from '../../services/auth.service';
+import { AuthService, User } from '../../services/auth/auth.service';
 import { Subscription } from 'rxjs';
 
 @Directive({
@@ -27,8 +27,7 @@ export class ClickOutsideDirective {
   standalone: true,
   imports: [
     NgIf,
-    RouterLink,
-    ClickOutsideDirective
+    RouterLink
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
