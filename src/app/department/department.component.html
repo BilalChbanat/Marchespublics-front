@@ -1,0 +1,189 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-5xl mx-auto">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-3xl font-bold">Departments</h2>
+            <p class="mt-2">Manage organization departments and contact information</p>
+          </div>
+          <button
+            (click)="toggleForm()"
+            class="px-4 py-2 bg-white text-blue-700 rounded-md font-medium hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 transition-all"
+          >
+            <span *ngIf="!showForm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              Add Department
+            </span>
+            <span *ngIf="showForm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              Cancel
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 pt-4">
+        <div *ngIf="successMessage" class="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+          {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          {{ errorMessage }}
+        </div>
+      </div>
+
+      <!-- Department Form -->
+      <div *ngIf="showForm" class="px-6 py-4">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+          {{ editMode ? 'Edit Department' : 'Add New Department' }}
+        </h3>
+        <form [formGroup]="departmentForm" (ngSubmit)="onSubmit()" class="space-y-4">
+          <!-- Name -->
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Department Name</label>
+            <input
+              type="text"
+              id="name"
+              formControlName="name"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['name'].invalid && f['name'].touched}"
+              placeholder="e.g. Human Resources"
+            />
+            <span *ngIf="f['name'].invalid && f['name'].touched" class="text-red-600 text-sm">
+              Department name is required
+            </span>
+          </div>
+
+          <!-- Address -->
+          <div>
+            <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+            <input
+              type="text"
+              id="address"
+              formControlName="address"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['address'].invalid && f['address'].touched}"
+              placeholder="e.g. 1234 Corporate Avenue, Floor 3, Casablanca"
+            />
+            <span *ngIf="f['address'].invalid && f['address'].touched" class="text-red-600 text-sm">
+              Address is required
+            </span>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['email'].invalid && f['email'].touched}"
+              placeholder="e.g. hr@marchespublics.gov.ma"
+            />
+            <span *ngIf="f['email'].touched && f['email'].invalid" class="text-red-600 text-sm">
+              Please enter a valid email address
+            </span>
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+            <input
+              type="text"
+              id="phone"
+              formControlName="phone"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['phone'].invalid && f['phone'].touched}"
+              placeholder="e.g. +212 522 123 456"
+            />
+            <span *ngIf="f['phone'].invalid && f['phone'].touched" class="text-red-600 text-sm">
+              Please enter a valid phone number
+            </span>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              (click)="resetForm()"
+              class="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Reset
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting || departmentForm.invalid"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span *ngIf="isSubmitting" class="inline-block mr-2">
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              {{ isSubmitting ? 'Saving...' : (editMode ? 'Update Department' : 'Create Department') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Department List -->
+      <div class="px-6 py-6">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">All Departments</h3>
+
+        <div *ngIf="departments.length === 0" class="text-center py-8 text-gray-500">
+          No departments found. Add a new department to get started.
+        </div>
+
+        <div *ngIf="departments.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let department of departments">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ department.name }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-500">{{ department.address }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ department.email }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ department.phone }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  (click)="editDepartment(department)"
+                  class="text-blue-600 hover:text-blue-900 mr-3"
+                >
+                  Edit
+                </button>
+                <button
+                  (click)="deleteDepartment(department.id!)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
