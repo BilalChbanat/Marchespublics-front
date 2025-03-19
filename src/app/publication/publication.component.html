@@ -1,0 +1,286 @@
+<!-- src/app/components/publication/publication.component.html -->
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-5xl mx-auto">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-3xl font-bold">Publications</h2>
+            <p class="mt-2">Manage tender publications and announcements</p>
+          </div>
+          <button
+            (click)="toggleForm()"
+            class="px-4 py-2 bg-white text-blue-700 rounded-md font-medium hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 transition-all"
+          >
+            <span *ngIf="!showForm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20"
+                   fill="currentColor">
+                <path fill-rule="evenodd"
+                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                      clip-rule="evenodd"/>
+              </svg>
+              Add Publication
+            </span>
+            <span *ngIf="showForm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20"
+                   fill="currentColor">
+                <path fill-rule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clip-rule="evenodd"/>
+              </svg>
+              Cancel
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 pt-4">
+        <div *ngIf="successMessage" class="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+          {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          {{ errorMessage }}
+        </div>
+      </div>
+
+      <!-- Publication Form -->
+      <div *ngIf="showForm" class="px-6 py-4">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+          {{ editMode ? 'Edit Publication' : 'Add New Publication' }}
+        </h3>
+        <form [formGroup]="publicationForm" (ngSubmit)="onSubmit()" class="space-y-4">
+          <!-- Title -->
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+            <input
+              type="text"
+              id="title"
+              formControlName="title"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['title'].invalid && f['title'].touched}"
+              placeholder="e.g. Infrastructure Development Project"
+            />
+            <span *ngIf="f['title'].invalid && f['title'].touched" class="text-red-600 text-sm">
+              Title is required
+            </span>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="4"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['description'].invalid && f['description'].touched}"
+              placeholder="Enter detailed description of the tender"
+            ></textarea>
+            <span *ngIf="f['description'].invalid && f['description'].touched" class="text-red-600 text-sm">
+              Description is required
+            </span>
+          </div>
+
+          <!-- Deadline Date -->
+          <div>
+            <label for="deadlineDate" class="block text-sm font-medium text-gray-700">Deadline Date</label>
+            <input
+              type="datetime-local"
+              id="deadlineDate"
+              formControlName="deadlineDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['deadlineDate'].invalid && f['deadlineDate'].touched}"
+            />
+            <span *ngIf="f['deadlineDate'].invalid && f['deadlineDate'].touched" class="text-red-600 text-sm">
+              Deadline date is required
+            </span>
+          </div>
+
+          <!-- Estimated Budget -->
+          <div>
+            <label for="estimatedBudget" class="block text-sm font-medium text-gray-700">Estimated Budget (MAD)</label>
+            <input
+              type="number"
+              id="estimatedBudget"
+              formControlName="estimatedBudget"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['estimatedBudget'].invalid && f['estimatedBudget'].touched}"
+              placeholder="e.g. 5000000"
+              step="0.01"
+            />
+            <span *ngIf="f['estimatedBudget'].invalid && f['estimatedBudget'].touched" class="text-red-600 text-sm">
+              Valid budget amount is required
+            </span>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label for="categoryId" class="block text-sm font-medium text-gray-700">Category</label>
+            <select
+              id="categoryId"
+              formControlName="categoryId"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['categoryId'].invalid && f['categoryId'].touched}"
+            >
+              <option value="">Select a category</option>
+              <option *ngFor="let category of categories" [value]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+            <span *ngIf="f['categoryId'].invalid && f['categoryId'].touched" class="text-red-600 text-sm">
+              Category is required
+            </span>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select
+              id="status"
+              formControlName="status"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['status'].invalid && f['status'].touched}"
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+            <span *ngIf="f['status'].invalid && f['status'].touched" class="text-red-600 text-sm">
+            Status is required
+          </span>
+          </div>
+
+          <!-- Department -->
+          <div>
+            <label for="departmentId" class="block text-sm font-medium text-gray-700">Department</label>
+            <select
+              id="departmentId"
+              formControlName="departmentId"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              [ngClass]="{'border-red-500': f['departmentId'].invalid && f['departmentId'].touched}"
+            >
+              <option value="">Select a department</option>
+              <option *ngFor="let department of departments" [value]="department.id">
+                {{ department.name }}
+              </option>
+            </select>
+            <span *ngIf="f['departmentId'].invalid && f['departmentId'].touched" class="text-red-600 text-sm">
+              Department is required
+            </span>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              (click)="resetForm()"
+              class="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Reset
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting || publicationForm.invalid"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span *ngIf="isSubmitting" class="inline-block mr-2">
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              {{ isSubmitting ? 'Saving...' : (editMode ? 'Update Publication' : 'Create Publication') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Publications List -->
+      <div class="px-6 py-6">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">All Publications</h3>
+
+        <div *ngIf="publications.length === 0" class="text-center py-8 text-gray-500">
+          No publications found. Add a new publication to get started.
+        </div>
+
+        <div *ngIf="publications.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Department
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Category
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Budget
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Deadline
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let publication of publications">
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">{{ publication.title }}</div>
+                <div class="text-sm text-gray-500 truncate max-w-xs">{{ publication.description }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ getDepartmentName(publication.departmentId) }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ getCategoryName(publication.categoryId) }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ formatBudget(publication.estimatedBudget) }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ publication.deadlineDate | date:'medium' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  [ngClass]="{
+                    'bg-yellow-100 text-yellow-800': publication.status === 'DRAFT',
+                    'bg-green-100 text-green-800': publication.status === 'PUBLISHED',
+                    'bg-red-100 text-red-800': publication.status === 'CANCELLED',
+                    'bg-blue-100 text-blue-800': publication.status === 'COMPLETED'
+                  }">
+              {{ publication.status }}
+            </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  (click)="editPublication(publication)"
+                  class="text-blue-600 hover:text-blue-900 mr-3"
+                >
+                  Edit
+                </button>
+                <button
+                  (click)="deletePublication(publication.id!)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
