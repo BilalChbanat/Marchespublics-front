@@ -40,7 +40,6 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Load user from localStorage on service initialization
     this.loadUserFromStorage();
   }
 
@@ -53,7 +52,6 @@ export class AuthService {
         const user = JSON.parse(userStr);
         this.currentUserSubject.next(user);
       } catch (e) {
-        // If parsing fails, clear potentially corrupted data
         localStorage.removeItem('user');
         localStorage.removeItem('auth_token');
       }
@@ -87,28 +85,24 @@ export class AuthService {
                 email: response.user.email
               };
             } else {
-              // If API doesn't return a user object, try to extract from JWT token
               try {
                 const tokenPayload = this.decodeJwtToken(response.token);
                 userData = {
                   id: tokenPayload.id || 0,
-                  username: tokenPayload.sub || email.split('@')[0], // Try to get from token or use email username
+                  username: tokenPayload.sub || email.split('@')[0],
                   email: tokenPayload.email || email
                 };
               } catch (error) {
-                // Fallback to basic user info
                 userData = {
                   id: 0,
-                  username: email.split('@')[0], // Use first part of email as username
+                  username: email.split('@')[0],
                   email: email
                 };
               }
             }
 
-            // Store user data in localStorage
             localStorage.setItem('user', JSON.stringify(userData));
 
-            // Update currentUserSubject
             this.currentUserSubject.next(userData);
 
             console.log('User data stored:', userData);
@@ -118,7 +112,6 @@ export class AuthService {
   }
 
   logout(): void {
-    // Clear user data and navigate to login
     this.clearUserData();
   }
 
@@ -140,24 +133,17 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  /**
-   * Decode JWT token to get payload data
-   * @param token JWT token string
-   * @returns Decoded payload as an object
-   */
+
   private decodeJwtToken(token: string): any {
     try {
-      // JWT token is split into three parts separated by dots
       const parts = token.split('.');
       if (parts.length !== 3) {
         throw new Error('Invalid JWT token format');
       }
 
-      // The payload is the second part
       const base64Payload = parts[1];
       const base64 = base64Payload.replace(/-/g, '+').replace(/_/g, '/');
 
-      // Decode base64
       const jsonPayload = atob(base64);
 
       return JSON.parse(jsonPayload);

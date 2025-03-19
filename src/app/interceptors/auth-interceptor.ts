@@ -15,14 +15,17 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const authToken = this.authService.getToken();
+    console.log('Current auth token:', authToken ? 'Present' : 'Missing');
 
     if (authToken) {
       const authReq = request.clone({
         headers: request.headers.set('Authorization', `Bearer ${authToken}`)
       });
+      console.log('Adding Authorization header to request');
       return next.handle(authReq);
     }
 
+    console.log('No Authorization header added to request');
     return next.handle(request);
   }
 }
