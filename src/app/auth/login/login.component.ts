@@ -35,7 +35,6 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  // Add this getter to fix the unresolved variable error
   get f() {
     return this.loginForm.controls;
   }
@@ -64,7 +63,7 @@ export class LoginComponent implements OnInit {
     this.authService.login(email, password).subscribe({
       next: (response) => {
         this.isSubmitting = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/']);
       },
       error: (error) => {
         this.isSubmitting = false;

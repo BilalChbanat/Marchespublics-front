@@ -15,9 +15,7 @@ import {NgClass, NgIf} from '@angular/common';
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
-
 })
-
 export class RegisterComponent implements OnInit {
   signupForm: FormGroup;
   isSubmitting = false;
@@ -67,10 +65,7 @@ export class RegisterComponent implements OnInit {
 
     this.authService.signup(signupRequest).subscribe({
       next: (response) => {
-        this.isSubmitting = false;
-        this.router.navigate(['/login'], {
-          queryParams: { registered: 'success' }
-        });
+        this.loginAfterSignup(this.signupForm.value.email, this.signupForm.value.password);
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -83,7 +78,24 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  // Convenience getters for form validation
+  loginAfterSignup(email: string, password: string): void {
+    this.authService.login(email, password).subscribe({
+      next: (loginResponse) => {
+        this.isSubmitting = false;
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.router.navigate(['/login'], {
+          queryParams: {
+            registered: 'success',
+            autologin: 'failed'
+          }
+        });
+      }
+    });
+  }
+
   get f() { return this.signupForm.controls; }
   get passwordMatchError() {
     return this.signupForm.hasError('passwordMismatch') && this.f['confirmPassword'].touched;

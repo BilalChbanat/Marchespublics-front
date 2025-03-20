@@ -21,6 +21,7 @@ import { CategoryService, Category } from '../services/category/category.service
 export class PublicationComponent implements OnInit {
   publicationForm: FormGroup;
   publications: Publication[] = [];
+  filteredPublications: Publication[] = [];
   departments: Department[] = [];
   categories: Category[] = [];
   isSubmitting = false;
@@ -29,6 +30,16 @@ export class PublicationComponent implements OnInit {
   currentPublicationId: number | null = null;
   successMessage = '';
   errorMessage = '';
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 6;
+  totalItems = 0;
+
+  // Filters
+  searchFilter = '';
+  categoryFilter = '';
+  statusFilter = '';
 
   constructor(
     private fb: FormBuilder,
@@ -59,11 +70,14 @@ export class PublicationComponent implements OnInit {
       next: (response: any) => {
         console.log('Publications received:', response);
 
-        // Extract publications from the content property
         if (response && response.content) {
           this.publications = response.content;
+          this.applyFilters();
+          this.totalItems = response.totalElements;
         } else {
           this.publications = [];
+          this.filteredPublications = [];
+          this.totalItems = 0;
           console.warn('No content property found in response');
         }
       },
@@ -191,6 +205,63 @@ export class PublicationComponent implements OnInit {
     }
   }
 
+  applyFilters(): void {
+    let result = this.publications.filter(pub => pub.status === 'PUBLISHED');
+
+    if (this.searchFilter) {
+      const search = this.searchFilter.toLowerCase();
+      result = result.filter(pub =>
+        pub.title.toLowerCase().includes(search) ||
+        pub.description.toLowerCase().includes(search)
+      );
+    }
+
+    if (this.categoryFilter) {
+      result = result.filter(pub => pub.categoryId.toString() === this.categoryFilter);
+    }
+
+    this.filteredPublications = result;
+  }
+
+  onSearchChange(event: Event): void {
+    this.searchFilter = (event.target as HTMLInputElement).value;
+    this.applyFilters();
+  }
+
+  onCategoryFilterChange(event: Event): void {
+    this.categoryFilter = (event.target as HTMLSelectElement).value;
+    this.applyFilters();
+  }
+
+  onStatusFilterChange(event: Event): void {
+    this.statusFilter = (event.target as HTMLSelectElement).value;
+    this.applyFilters();
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredPublications.length / this.pageSize);
+  }
+
+  get paginatedPublications(): Publication[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.filteredPublications.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  setPage(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
+    this.currentPage = page;
+  }
+
+  get pages(): number[] {
+    const pages = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
   formatBudget(budget: number): string {
     return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(budget);
   }
@@ -205,11 +276,17 @@ export class PublicationComponent implements OnInit {
     return category ? category.name : 'Unknown Category';
   }
 
+  formatDate(date: string): string {
+    const d = new Date(date);
+    return d.toLocaleDateString('fr-MA', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
   private handleSuccess(message: string): void {
     this.isSubmitting = false;
     this.successMessage = message;
     this.resetForm();
 
+    // Hide the form after successful submission
     setTimeout(() => {
       this.showForm = false;
     }, 2000);
@@ -233,15 +310,19 @@ export class PublicationComponent implements OnInit {
   checkUserRole(): void {
     const token = localStorage.getItem('auth_token');
     if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('Token payload:', payload);
-        console.log('Roles:', payload.roles || payload.role);
-      } catch (e) {
-        console.error('Error decoding token:', e);
-      }
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(jsonPayload);
+      console.log('Token payload:', payload);
+      console.log('User roles:', payload.roles || payload.role || 'No role found in token');
     }
   }
 
   get f() { return this.publicationForm.controls; }
+
+  protected readonly Math = Math;
 }
