@@ -69,6 +69,10 @@ export class PublicationService {
     );
   }
 
+  getPublicationsByUserId(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
   deletePublication(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }

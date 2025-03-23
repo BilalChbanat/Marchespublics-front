@@ -48,6 +48,77 @@
     </div>
   </section>
 
+  <!-- User Publications Section -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Publications</h2>
+
+    <div *ngIf="loading.publications" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading your publications...</p>
+    </div>
+
+    <div *ngIf="error.publications" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+      {{ error.publications }}
+    </div>
+
+    <div *ngIf="!loading.publications && userPublications.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
+      <p class="text-gray-600">You haven't created any publications yet.</p>
+    </div>
+
+    <div *ngIf="!loading.publications && userPublications.length > 0"
+         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let publication of userPublications" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 bg-blue-50">
+          <div class="flex justify-between items-start">
+            <h3 class="font-bold text-xl line-clamp-2">{{ publication.title }}</h3>
+            <span
+              class="px-3 py-1 text-xs font-bold rounded-full"
+              [ngClass]="{
+              'bg-yellow-100 text-yellow-800': publication.status === 'DRAFT',
+              'bg-green-100 text-green-800': publication.status === 'PUBLISHED',
+              'bg-red-100 text-red-800': publication.status === 'CANCELLED',
+              'bg-blue-100 text-blue-800': publication.status === 'COMPLETED'
+            }"
+            >
+            {{ publication.status }}
+          </span>
+          </div>
+          <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+            {{ publication.description }}
+          </p>
+        </div>
+
+        <div class="border-b border-gray-200"></div>
+
+        <div class="p-4">
+          <div class="flex gap-4 mb-3">
+            <div class="flex items-center text-sm">
+              <span class="material-symbols-outlined text-gray-500 mr-1 text-base">category</span>
+              <span
+                class="text-gray-700">{{ publication.categoryName || getCategoryName(publication.categoryId) }}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="flex items-center text-sm">
+              <span class="material-symbols-outlined text-gray-500 mr-1 text-base">calendar_month</span>
+              <span class="text-gray-700">{{ publication.deadlineDate | date:'dd MMM yyyy' }}</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <span class="material-symbols-outlined text-gray-500 mr-1 text-base">payments</span>
+              <span class="text-gray-700">{{ formatBudget(publication.estimatedBudget) }}</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-2 border-t border-gray-200 flex justify-end space-x-2">
+            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Details</button>
+            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- User Department Section -->
   <section class="mb-8">
     <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Department</h2>
@@ -68,7 +139,7 @@
     <div *ngIf="!loading.department && userDepartment" class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="p-6">
         <h3 class="text-xl font-bold text-gray-800 mb-2">{{ userDepartment.name }}</h3>
-<!--        <p class="text-gray-600 mb-4">{{ userDepartment.description }}</p>-->
+        <!--        <p class="text-gray-600 mb-4">{{ userDepartment.description }}</p>-->
 
         <div class="mt-4 pt-4 border-t border-gray-200">
           <h4 class="font-medium text-gray-700 mb-2">Contact Information</h4>

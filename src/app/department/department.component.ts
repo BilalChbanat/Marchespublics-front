@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DepartmentService, Department } from '../services/department/department-service.service';
+import { AuthService } from '../services/auth/auth.service';
 import {NgClass, NgForOf, NgIf} from '@angular/common';
 
 @Component({
@@ -11,7 +12,6 @@ import {NgClass, NgForOf, NgIf} from '@angular/common';
     NgClass,
     NgIf,
     NgForOf,
-
   ],
   templateUrl: './department.component.html',
   styleUrls: ['./department.component.css']
@@ -25,10 +25,12 @@ export class DepartmentComponent implements OnInit {
   currentDepartmentId: number | null = null;
   successMessage = '';
   errorMessage = '';
+  currentUserId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private departmentService: DepartmentService
+    private departmentService: DepartmentService,
+    private authService: AuthService // Add AuthService
   ) {
     this.departmentForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -39,6 +41,8 @@ export class DepartmentComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Get current user ID
+    this.currentUserId = this.authService.getCurrentUserId();
     this.loadDepartments();
   }
 
@@ -89,7 +93,19 @@ export class DepartmentComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const departmentData: Department = this.departmentForm.value;
+    // Get current user ID safely
+    const currentUserId = this.authService.getCurrentUserId();
+
+    if (!currentUserId) {
+      this.errorMessage = 'Please log in to create a department';
+      this.isSubmitting = false;
+      return;
+    }
+
+    const departmentData: Department = {
+      ...this.departmentForm.value,
+      userId: currentUserId
+    };
 
     if (this.editMode && this.currentDepartmentId) {
       this.departmentService.updateDepartment(this.currentDepartmentId, departmentData).subscribe({

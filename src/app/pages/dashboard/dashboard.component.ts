@@ -4,6 +4,8 @@ import {CompanyService, Company} from '../../services/company/company.service';
 import {DepartmentService, Department} from '../../services/department/department-service.service';
 import {ApplicationService, ApplicationDto} from '../../services/application/application.service';
 import {NgClass, NgForOf, NgIf, DatePipe} from '@angular/common';
+import {PublicationService} from '../../services/publication/publication.service';
+import {CategoryService} from '../../services/category/category.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,34 +16,42 @@ import {NgClass, NgForOf, NgIf, DatePipe} from '@angular/common';
 })
 export class DashboardComponent implements OnInit {
   userCompanies: Company[] = [];
+  userPublications: any[] = [];
+  categories: any[] = [];
   userDepartment: Department | null = null;
   userApplications: ApplicationDto[] = [];
   loading = {
     companies: false,
     department: false,
-    applications: false
+    applications: false,
+    publications: false
   };
   error = {
     companies: '',
     department: '',
-    applications: ''
+    applications: '',
+    publications: ''
   };
 
   constructor(
     private companyService: CompanyService,
     private departmentService: DepartmentService,
-    private applicationService: ApplicationService
+    private applicationService: ApplicationService,
+    private publicationService: PublicationService,
+    private categoryService: CategoryService
   ) {
   }
 
   ngOnInit(): void {
     this.loadUserData();
+    this.loadCategories();
   }
 
   loadUserData(): void {
     this.loadUserCompanies();
     this.loadUserDepartment();
     this.loadUserApplications();
+    this.loadUserPublications();
   }
 
   loadUserCompanies(): void {
@@ -231,5 +241,38 @@ export class DashboardComponent implements OnInit {
   // Helper method to format currency values
   formatBudget(budget: number): string {
     return new Intl.NumberFormat('fr-MA', {style: 'currency', currency: 'MAD'}).format(budget);
+  }
+
+  loadUserPublications(): void {
+    this.loading.publications = true;
+    const userId = this.getCurrentUserId();
+
+    this.publicationService.getPublicationsByUserId(userId).subscribe({
+      next: (publications) => {
+        this.userPublications = publications;
+        this.loading.publications = false;
+      },
+      error: (error) => {
+        console.error('Error loading user publications:', error);
+        this.error.publications = 'Failed to load your publications';
+        this.loading.publications = false;
+      }
+    });
+  }
+  loadCategories(): void {
+    this.categoryService.getAllCategories().subscribe({
+      next: (response: any) => {
+        if (response && response.content) {
+          this.categories = response.content;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+      }
+    });
+  }
+  getCategoryName(categoryId: number): string {
+    const category = this.categories.find(c => c.id === categoryId);
+    return category ? category.name : 'Unknown Category';
   }
 }
