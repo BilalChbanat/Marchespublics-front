@@ -135,17 +135,26 @@ export class AuthService {
       try {
         return JSON.parse(userStr);
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error('Error parsing user data', error);
+        return null;
+      }
+    }
+    return null;
+  }
+  getCurrentUserId(): number | null {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.id;
+      } catch (error) {
+        console.error('Error parsing user data', error);
         return null;
       }
     }
     return null;
   }
 
-  getCurrentUserId(): number | null {
-    const user = this.getCurrentUser();
-    return user ? user.id : null;
-  }
 
 
   private decodeJwtToken(token: string): any {

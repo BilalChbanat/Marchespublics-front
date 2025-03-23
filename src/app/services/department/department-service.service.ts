@@ -68,6 +68,6 @@ export class DepartmentService {
   }
 
   getDepartmentByUserId(userId: number): Observable<Department> {
-    return this.http.get<Department>(`${this.apiUrl}/user/${userId}`, { headers: this.getAuthHeaders() });
+    return this.http.get<Department>(`${this.apiUrl}/user/${userId}`);
   }
 }

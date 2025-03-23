@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {map, Observable, tap, throwError} from 'rxjs';
+import {catchError} from 'rxjs/operators';
+import {AuthService} from '../auth/auth.service';
 
 export interface PageResponse<T> {
   content: T[];
@@ -20,7 +22,7 @@ export interface Publication {
   id?: number;
   title: string;
   description: string;
-  deadlineDate: string;
+  deadlineDate: string | null;
   estimatedBudget: number;
   categoryId: number;
   departmentId: number;
@@ -41,7 +43,7 @@ export interface Publication {
 export class PublicationService {
   private apiUrl = 'http://localhost:8080/pubs';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   getAllPublications(): Observable<PageResponse<Publication>> {
     return this.http.get<PageResponse<Publication>>(this.apiUrl);
@@ -52,7 +54,33 @@ export class PublicationService {
   }
 
   createPublication(publication: Publication): Observable<Publication> {
-    return this.http.post<Publication>(`${this.apiUrl}/save`, publication);
+    const token = this.authService.getToken();
+
+    if (!token) {
+      return throwError(() => new Error('No authentication token found'));
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    const formattedPublication = {
+      ...publication,
+      deadlineDate: publication.deadlineDate ?
+        new Date(publication.deadlineDate).toISOString() :
+        null
+    };
+
+    return this.http.post<Publication>(`${this.apiUrl}/save`, formattedPublication, {
+      headers
+    }).pipe(
+      tap(response => console.log('Publication created:', response)),
+      catchError(error => {
+        console.error('Error creating publication:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   private getHeaders(): HttpHeaders {
@@ -73,7 +101,13 @@ export class PublicationService {
     return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`);
   }
 
+  getPublicationsByDepartmentId(departmentId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/department/${departmentId}`);
+  }
+
   deletePublication(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
+
 }

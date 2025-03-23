@@ -7,6 +7,7 @@ import {CategoryService, Category} from '../services/category/category.service';
 import {ApplicationDto, ApplicationService} from '../services/application/application.service';
 import {FileUploadService} from '../services/file-upload/file-upload.service';
 import {CompanyService} from '../services/company/company.service';
+import {AuthService} from '../services/auth/auth.service';
 
 @Component({
   selector: 'app-publication',
@@ -64,7 +65,8 @@ export class PublicationComponent implements OnInit {
     private categoryService: CategoryService,
     private applicationService: ApplicationService,
     private fileUploadService: FileUploadService,
-  private companyService: CompanyService
+  private companyService: CompanyService,
+    private authService: AuthService
   ) {
     this.publicationForm = this.fb.group({
       title: ['', [Validators.required]],
@@ -87,8 +89,6 @@ export class PublicationComponent implements OnInit {
     console.log('Fetching publications...');
     this.publicationService.getAllPublications().subscribe({
       next: (response: any) => {
-        console.log('Publications received:', response);
-
         if (response && response.content) {
           this.publications = response.content;
           this.applyFilters();
@@ -165,34 +165,57 @@ export class PublicationComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const formValues = this.publicationForm.value;
-
-    const publicationData: Publication = {
-      ...formValues,
-      departmentId: Number(formValues.departmentId),
-      categoryId: Number(formValues.categoryId),
-      estimatedBudget: Number(formValues.estimatedBudget)
-    };
-
-    console.log("Sending publication data:", publicationData);
-
-    if (this.editMode && this.currentPublicationId) {
-      this.publicationService.updatePublication(this.currentPublicationId, publicationData).subscribe({
-        next: (response) => {
-          this.handleSuccess('Publication updated successfully!');
-          this.loadPublications();
-        },
-        error: (error) => this.handleError(error)
-      });
-    } else {
-      this.publicationService.createPublication(publicationData).subscribe({
-        next: (response) => {
-          this.handleSuccess('Publication created successfully!');
-          this.loadPublications();
-        },
-        error: (error) => this.handleError(error)
-      });
+    const currentUserId = this.authService.getCurrentUserId();
+    if (!currentUserId) {
+      this.errorMessage = 'Please log in to create a publication';
+      this.isSubmitting = false;
+      return;
     }
+
+    // First, fetch the user's department
+    this.departmentService.getDepartmentByUserId(currentUserId).subscribe({
+      next: (department) => {
+        const formValues = this.publicationForm.value;
+
+        const publicationData: Publication = {
+          ...formValues,
+          departmentId: department.id, // Use the fetched department ID
+          categoryId: Number(formValues.categoryId),
+          estimatedBudget: Number(formValues.estimatedBudget),
+          deadlineDate: formValues.deadlineDate
+            ? new Date(formValues.deadlineDate).toISOString()
+            : null
+        };
+
+        this.publicationService.createPublication(publicationData).subscribe({
+          next: (response) => {
+            this.handleSuccess('Publication created successfully!');
+            this.loadPublications();
+          },
+          error: (error) => {
+            console.error('Full error object:', error);
+            console.error('Error status:', error.status);
+            console.error('Error message:', error.error?.message);
+            console.error('Error details:', error.error);
+
+            if (error.status === 403) {
+              this.errorMessage = 'You do not have permission to create a publication. Please check your authentication.';
+            } else if (error.status === 401) {
+              this.errorMessage = 'Authentication failed. Please log in again.';
+            } else {
+              this.errorMessage = error.error?.message || 'An unexpected error occurred.';
+            }
+
+            this.isSubmitting = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error fetching department:', error);
+        this.errorMessage = 'Unable to fetch your department. Please ensure you are assigned to a department.';
+        this.isSubmitting = false;
+      }
+    });
   }
 
   editPublication(publication: Publication, event?: Event): void {
