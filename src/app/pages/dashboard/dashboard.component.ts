@@ -1,4 +1,3 @@
-// dashboard.component.ts
 import {Component, OnInit} from '@angular/core';
 import {CompanyService, Company} from '../../services/company/company.service';
 import {DepartmentService, Department} from '../../services/department/department-service.service';

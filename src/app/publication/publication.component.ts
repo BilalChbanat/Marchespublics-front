@@ -65,7 +65,7 @@ export class PublicationComponent implements OnInit {
     private categoryService: CategoryService,
     private applicationService: ApplicationService,
     private fileUploadService: FileUploadService,
-  private companyService: CompanyService,
+    private companyService: CompanyService,
     private authService: AuthService
   ) {
     this.publicationForm = this.fb.group({
@@ -227,8 +227,12 @@ export class PublicationComponent implements OnInit {
     this.editMode = true;
     this.currentPublicationId = publication.id!;
 
-    const deadlineDate = new Date(publication.deadlineDate);
-    const formattedDate = deadlineDate.toISOString().split('T')[0];
+    const deadlineDate = publication.deadlineDate
+      ? new Date(publication.deadlineDate)
+      : null;
+    const formattedDate = deadlineDate
+      ? deadlineDate.toISOString().split('T')[0]
+      : null;
 
     this.publicationForm.patchValue({
       title: publication.title,
