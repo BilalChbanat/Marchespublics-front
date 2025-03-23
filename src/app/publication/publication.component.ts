@@ -37,7 +37,7 @@ export class PublicationComponent implements OnInit {
   errorMessage = '';
 
   currentPage = 1;
-  pageSize = 6;
+  pageSize = 9;
   totalItems = 0;
 
   searchFilter = '';
@@ -91,6 +91,7 @@ export class PublicationComponent implements OnInit {
       next: (response: any) => {
         if (response && response.content) {
           this.publications = response.content;
+          console.log(this.publications.length);
           this.applyFilters();
           this.totalItems = response.totalElements;
         } else {
@@ -349,10 +350,9 @@ export class PublicationComponent implements OnInit {
     this.successMessage = message;
     this.resetForm();
 
-    // Hide the form after successful submission
     setTimeout(() => {
       this.showForm = false;
-    }, 2000);
+    }, 1000);
   }
 
   private handleError(error: any): void {
@@ -391,20 +391,17 @@ export class PublicationComponent implements OnInit {
 
   protected readonly Math = Math;
 
-  // Method to show the publication modal
   showPublicationModal(publication: Publication): void {
     this.selectedPublication = publication;
     this.resetApplicationData();
   }
 
-  // Method to close the modal
   closeModal(): void {
     this.selectedPublication = null;
     this.showApplicationForm = false;
     this.resetApplicationData();
   }
 
-  // Method to reset application data
   resetApplicationData(): void {
     this.applicationData = {
       proposedBudget: null,
@@ -430,7 +427,6 @@ export class PublicationComponent implements OnInit {
     this.resetApplicationData();
   }
 
-  // Method to handle file selection
   onFileSelected(event: any): void {
     if (event.target.files.length > 0) {
       this.coverLetterFile = event.target.files[0];

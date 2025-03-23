@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { CompanyService, Company } from '../../services/company/company.service';
-import { DepartmentService, Department } from '../../services/department/department-service.service';
-import { ApplicationService, ApplicationDto } from '../../services/application/application.service';
-import { NgClass, NgForOf, NgIf, DatePipe } from '@angular/common';
-import { PublicationService, Publication } from '../../services/publication/publication.service';
-import { CategoryService, Category } from '../../services/category/category.service';
-import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import {Component, OnInit} from '@angular/core';
+import {CompanyService, Company} from '../../services/company/company.service';
+import {DepartmentService, Department} from '../../services/department/department-service.service';
+import {ApplicationService, ApplicationDto} from '../../services/application/application.service';
+import {NgClass, NgForOf, NgIf, DatePipe} from '@angular/common';
+import {PublicationService, Publication} from '../../services/publication/publication.service';
+import {CategoryService, Category} from '../../services/category/category.service';
+import {RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
@@ -75,11 +75,13 @@ export class DashboardComponent implements OnInit {
     private applicationService: ApplicationService,
     private publicationService: PublicationService,
     private categoryService: CategoryService
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.loadUserData();
     this.loadCategories();
+    this.loadPublicationApplications();
   }
 
   private loadUserData(): void {
@@ -196,11 +198,11 @@ export class DashboardComponent implements OnInit {
 
   // Company actions
   showCompanyDetailsModal(company: Company): void {
-    this.selectedCompanyForView = { ...company };
+    this.selectedCompanyForView = {...company};
   }
 
   showEditCompanyModal(company: Company): void {
-    this.selectedCompanyForEdit = { ...company }; // Clone to avoid direct binding
+    this.selectedCompanyForEdit = {...company}; // Clone to avoid direct binding
     this.selectedCompanyForView = null; // Close view modal if open
   }
 
@@ -267,7 +269,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // Publication actions
   showPublicationModal(publication: Publication): void {
     this.selectedPublication = {...publication};
     this.isViewMode = true;
@@ -373,7 +374,7 @@ export class DashboardComponent implements OnInit {
   selectedDepartmentForEdit: Department | null = null;
 
   showEditDepartmentModal(department: Department): void {
-    this.selectedDepartmentForEdit = { ...department };
+    this.selectedDepartmentForEdit = {...department};
   }
 
   closeDepartmentEditModal(): void {
@@ -393,4 +394,79 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
+
+  publicationApplications: any[] = [];
+  publicationApplicationsLoading = false;
+  publicationApplicationsError = '';
+
+  loadPublicationApplications(): void {
+    this.publicationApplicationsLoading = true;
+
+    this.publicationService.getPublicationsByUserId(this.getCurrentUserId()).subscribe({
+      next: (publications) => {
+        if (publications && publications.length > 0) {
+          const publicationIds = publications.map(pub => pub.id!);
+
+          let allApplications: any[] = [];
+          let completedRequests = 0;
+
+          publicationIds.forEach(pubId => {
+            this.applicationService.getApplicationsByPublication(pubId).subscribe({
+              next: (response) => {
+                if (response && response.content) {
+                  allApplications = [...allApplications, ...response.content];
+                } else if (Array.isArray(response)) {
+                  allApplications = [...allApplications, ...response];
+                }
+
+                if (++completedRequests === publicationIds.length) {
+                  this.publicationApplications = allApplications;
+                  this.publicationApplicationsLoading = false;
+                }
+              },
+              error: (error) => {
+                console.error(`Error loading applications for publication ${pubId}:`, error);
+                if (++completedRequests === publicationIds.length) {
+                  this.publicationApplicationsLoading = false;
+                  this.publicationApplicationsError = 'Failed to load applications';
+                }
+              }
+            });
+          });
+        } else {
+          this.publicationApplications = [];
+          this.publicationApplicationsLoading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading publications for applications:', error);
+        this.publicationApplicationsError = 'Failed to load publications';
+        this.publicationApplicationsLoading = false;
+      }
+    });
+  }
+
+  updateApplicationStatus(applicationId: number, newStatus: string): void {
+    if (newStatus === 'REJECTED' && !confirm('Are you sure you want to reject this application?')) {
+      return;
+    }
+
+    this.applicationService.updateApplicationStatus(applicationId, newStatus).subscribe({
+      next: (updatedApp) => {
+        const index = this.publicationApplications.findIndex(app => app.id === applicationId);
+        if (index !== -1) {
+          this.publicationApplications[index] = {
+            ...this.publicationApplications[index],
+            status: newStatus
+          };
+        }
+        alert(`Application ${newStatus.toLowerCase()} successfully`);
+      },
+      error: (error) => {
+        console.error('Error updating application status:', error);
+        alert('Failed to update application status');
+      }
+    });
+  }
+
 }

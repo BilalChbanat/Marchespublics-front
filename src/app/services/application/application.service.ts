@@ -33,17 +33,10 @@ export class ApplicationService {
   }
 
 
-  getApplicationsByPublication(publicationId: number, page = 0, size = 10): Observable<any> {
-    return this.http.get(`${this.apiUrl}/publication/${publicationId}?page=${page}&size=${size}`);
-  }
-
   getApplicationById(id: number): Observable<ApplicationDto> {
     return this.http.get<ApplicationDto>(`${this.apiUrl}/${id}`);
   }
 
-  updateApplicationStatus(id: number, status: string): Observable<ApplicationDto> {
-    return this.http.put<ApplicationDto>(`${this.apiUrl}/${id}/status?status=${status}`, {});
-  }
 
   deleteApplication(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
@@ -51,6 +44,17 @@ export class ApplicationService {
 
   hasApplied(publicationId: number, companyId: number): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/check?publicationId=${publicationId}&companyId=${companyId}`);
+  }
+
+  getApplicationsByPublication(publicationId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/publication/${publicationId}`);
+  }
+
+  updateApplicationStatus(applicationId: number, status: string): Observable<any> {
+    return this.http.patch(
+      `${this.apiUrl}/${applicationId}/status?status=${status}`,
+      {}
+    );
   }
 
 

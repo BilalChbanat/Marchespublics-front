@@ -45,8 +45,8 @@ export class PublicationService {
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
-  getAllPublications(): Observable<PageResponse<Publication>> {
-    return this.http.get<PageResponse<Publication>>(this.apiUrl);
+  getAllPublications(page: number = 0, size: number = 190): Observable<any> {
+    return this.http.get(`${this.apiUrl}?page=${page}&size=${size}`);
   }
 
   getPublicationById(id: number): Observable<Publication> {
@@ -109,5 +109,16 @@ export class PublicationService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  updateApplicationStatus(applicationId: number, status: string): Observable<any> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.authService.getToken()}`
+    });
 
+    // Using PUT instead of PATCH to match the backend
+    return this.http.put<any>(
+      `${this.apiUrl}/${applicationId}/status?status=${status}`,
+      {},
+      { headers }
+    );
+  }
 }
