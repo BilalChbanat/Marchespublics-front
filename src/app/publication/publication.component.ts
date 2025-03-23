@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgClass, NgForOf, NgIf, DatePipe } from '@angular/common';
-import { PublicationService, Publication } from '../services/publication/publication.service';
-import { DepartmentService, Department } from '../services/department/department-service.service';
-import { CategoryService, Category } from '../services/category/category.service';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NgClass, NgForOf, NgIf, DatePipe} from '@angular/common';
+import {PublicationService, Publication} from '../services/publication/publication.service';
+import {DepartmentService, Department} from '../services/department/department-service.service';
+import {CategoryService, Category} from '../services/category/category.service';
+import {ApplicationDto, ApplicationService} from '../services/application/application.service';
+import {FileUploadService} from '../services/file-upload/file-upload.service';
+import {CompanyService} from '../services/company/company.service';
 
 @Component({
   selector: 'app-publication',
@@ -13,7 +16,8 @@ import { CategoryService, Category } from '../services/category/category.service
     NgClass,
     NgIf,
     NgForOf,
-    DatePipe
+    DatePipe,
+    FormsModule
   ],
   templateUrl: './publication.component.html',
   styleUrls: ['./publication.component.css']
@@ -31,21 +35,36 @@ export class PublicationComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
 
-  // Pagination
   currentPage = 1;
   pageSize = 6;
   totalItems = 0;
 
-  // Filters
   searchFilter = '';
   categoryFilter = '';
   statusFilter = '';
+
+  selectedPublication: Publication | null = null;
+  showApplicationForm = false;
+  coverLetterFile: File | null = null;
+  applicationSubmitting = false;
+  applicationSuccessMessage = '';
+  applicationErrorMessage = '';
+
+  applicationData = {
+    proposedBudget: null as number | null,
+    coverLetterPath: '',
+    publicationId: null as number | null,
+    companyId: null as number | null
+  };
 
   constructor(
     private fb: FormBuilder,
     private publicationService: PublicationService,
     private departmentService: DepartmentService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private applicationService: ApplicationService,
+    private fileUploadService: FileUploadService,
+  private companyService: CompanyService
   ) {
     this.publicationForm = this.fb.group({
       title: ['', [Validators.required]],
@@ -114,6 +133,11 @@ export class PublicationComponent implements OnInit {
     });
   }
 
+  applyForPublication(publication: any, event: Event): void {
+    event.stopPropagation();
+    this.showPublicationModal(publication);
+  }
+
   toggleForm(): void {
     this.showForm = !this.showForm;
     if (!this.showForm) {
@@ -171,7 +195,11 @@ export class PublicationComponent implements OnInit {
     }
   }
 
-  editPublication(publication: Publication): void {
+  editPublication(publication: Publication, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
     this.showForm = true;
     this.editMode = true;
     this.currentPublicationId = publication.id!;
@@ -190,7 +218,11 @@ export class PublicationComponent implements OnInit {
     });
   }
 
-  deletePublication(id: number): void {
+  deletePublication(id: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
     if (confirm('Are you sure you want to delete this publication?')) {
       this.publicationService.deletePublication(id).subscribe({
         next: () => {
@@ -206,7 +238,11 @@ export class PublicationComponent implements OnInit {
   }
 
   applyFilters(): void {
-    let result = this.publications.filter(pub => pub.status === 'PUBLISHED');
+    let result = [...this.publications];
+
+    if (this.statusFilter) {
+      result = result.filter(pub => pub.status === this.statusFilter);
+    }
 
     if (this.searchFilter) {
       const search = this.searchFilter.toLowerCase();
@@ -263,7 +299,7 @@ export class PublicationComponent implements OnInit {
   }
 
   formatBudget(budget: number): string {
-    return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(budget);
+    return new Intl.NumberFormat('fr-MA', {style: 'currency', currency: 'MAD'}).format(budget);
   }
 
   getDepartmentName(departmentId: number): string {
@@ -278,7 +314,7 @@ export class PublicationComponent implements OnInit {
 
   formatDate(date: string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('fr-MA', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('fr-MA', {day: '2-digit', month: 'short', year: 'numeric'});
   }
 
   private handleSuccess(message: string): void {
@@ -322,7 +358,171 @@ export class PublicationComponent implements OnInit {
     }
   }
 
-  get f() { return this.publicationForm.controls; }
+  get f() {
+    return this.publicationForm.controls;
+  }
 
   protected readonly Math = Math;
+
+  // Method to show the publication modal
+  showPublicationModal(publication: Publication): void {
+    this.selectedPublication = publication;
+    this.resetApplicationData();
+  }
+
+  // Method to close the modal
+  closeModal(): void {
+    this.selectedPublication = null;
+    this.showApplicationForm = false;
+    this.resetApplicationData();
+  }
+
+  // Method to reset application data
+  resetApplicationData(): void {
+    this.applicationData = {
+      proposedBudget: null,
+      coverLetterPath: '',
+      publicationId: null,
+      companyId: null
+    };
+    this.coverLetterFile = null;
+    this.applicationSuccessMessage = '';
+    this.applicationErrorMessage = '';
+  }
+
+  toggleApplicationForm(): void {
+    this.showApplicationForm = true;
+    if (this.selectedPublication && this.selectedPublication.id) {
+      this.applicationData.publicationId = this.selectedPublication.id;
+      this.applicationData.companyId = this.getCurrentUserCompanyId();
+    }
+  }
+
+  cancelApplication(): void {
+    this.showApplicationForm = false;
+    this.resetApplicationData();
+  }
+
+  // Method to handle file selection
+  onFileSelected(event: any): void {
+    if (event.target.files.length > 0) {
+      this.coverLetterFile = event.target.files[0];
+    }
+  }
+
+  submitApplication(): void {
+    if (!this.applicationData.proposedBudget || !this.coverLetterFile) {
+      this.applicationErrorMessage = 'Please fill all required fields';
+      return;
+    }
+
+    this.applicationSubmitting = true;
+    this.applicationErrorMessage = '';
+    this.applicationSuccessMessage = '';
+
+    console.log('Uploading file:', this.coverLetterFile);
+
+    // First upload the file
+    this.fileUploadService.uploadFile(this.coverLetterFile).subscribe({
+      next: (response) => {
+        console.log('File upload complete, response:', response);
+
+        if (response && response.filePath) {
+          this.applicationData.coverLetterPath = response.filePath;
+
+          // Get the current user ID from localStorage
+          const userJson = localStorage.getItem('user');
+          if (!userJson) {
+            this.applicationSubmitting = false;
+            this.applicationErrorMessage = 'You must be logged in to submit an application';
+            return;
+          }
+
+          const user = JSON.parse(userJson);
+          const userId = user.id;
+
+          this.companyService.getCompaniesByUserId(userId).subscribe({
+            next: (companies) => {
+              if (companies && companies.length > 0) {
+                // Use the first company associated with this user
+                this.applicationData.companyId = companies[0].id ?? null;
+                console.log('Using company ID:', this.applicationData.companyId);
+                this.createApplication();
+              } else {
+                this.applicationSubmitting = false;
+                this.applicationErrorMessage = 'No company found for your account. Please create a company first.';
+              }
+            },
+            error: (error) => {
+              console.error('Error fetching user company:', error);
+              this.applicationSubmitting = false;
+              this.applicationErrorMessage = 'Failed to retrieve your company information.';
+            }
+          });
+        } else {
+          console.error('File upload response missing filePath:', response);
+          this.applicationSubmitting = false;
+          this.applicationErrorMessage = 'Error processing uploaded file. Please try again.';
+        }
+      },
+      error: (error) => {
+        console.error('File upload error:', error);
+        this.applicationSubmitting = false;
+        this.applicationErrorMessage = 'Failed to upload file: ' + (error.message || 'Unknown error');
+      }
+    });
+  }
+
+  createApplication(): void {
+    // Make sure we have all required data before proceeding
+    if (!this.applicationData.publicationId || !this.applicationData.companyId ||
+      !this.applicationData.proposedBudget || !this.applicationData.coverLetterPath) {
+      this.applicationSubmitting = false;
+      this.applicationErrorMessage = 'Missing required application data';
+      return;
+    }
+
+    const applicationDto: ApplicationDto = {
+      publicationId: this.applicationData.publicationId,
+      companyId: this.applicationData.companyId,
+      proposedBudget: this.applicationData.proposedBudget,
+      coverLetterPath: this.applicationData.coverLetterPath
+    };
+
+    this.applicationService.apply(applicationDto).subscribe({
+      next: (response) => {
+        this.applicationSubmitting = false;
+        this.applicationSuccessMessage = 'Application submitted successfully!';
+
+        // Close modal after delay
+        setTimeout(() => {
+          this.closeModal();
+        }, 2000);
+      },
+      error: (error) => {
+        this.applicationSubmitting = false;
+        console.error('Error submitting application:', error);
+
+        if (error.error && error.error.message) {
+          this.applicationErrorMessage = error.error.message;
+        } else {
+          this.applicationErrorMessage = 'Failed to submit application. Please try again.';
+        }
+      }
+    });
+  }
+
+  getCurrentUserCompanyId(): number {
+    // Replace this with your actual logic to get the company ID
+    const userData = localStorage.getItem('user_data');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return user.companyId;
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+    return 2; // Change this to a valid company ID that exists in your database
+  }
 }

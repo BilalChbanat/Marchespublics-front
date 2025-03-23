@@ -23,6 +23,7 @@ export interface Company {
   employeesNumber: number;
   registrationDate: string;
   email: string;
+  userId: number;
 }
 
 @Injectable({
@@ -51,5 +52,9 @@ export class CompanyService {
 
   deleteCompany(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  getCompaniesByUserId(userId: number): Observable<Company[]> {
+    return this.http.get<Company[]>(`${this.apiUrl}/user/${userId}/all`);
   }
 }

@@ -38,4 +38,7 @@ export class DepartmentService {
   deleteDepartment(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+  getDepartmentByUserId(userId: number): Observable<Department> {
+    return this.http.get<Department>(`${this.apiUrl}/user/${userId}`);
+  }
 }

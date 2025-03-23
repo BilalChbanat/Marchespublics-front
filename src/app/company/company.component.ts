@@ -35,7 +35,8 @@ export class CompanyComponent implements OnInit {
       address: ['', [Validators.required]],
       employeesNumber: ['', [Validators.required, Validators.min(1)]],
       registrationDate: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
+      userId: [this.getCurrentUserId(), [Validators.required]]
     });
   }
 
@@ -112,6 +113,23 @@ export class CompanyComponent implements OnInit {
     }
   }
 
+  private getCurrentUserId(): number {
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        if (user && user.id) {
+          return user.id;
+        }
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+
+    this.errorMessage = 'You must be logged in to create a company';
+    throw new Error('User not authenticated');
+  }
+
   editCompany(company: Company): void {
     this.showForm = true;
     this.editMode = true;
@@ -121,7 +139,8 @@ export class CompanyComponent implements OnInit {
       address: company.address,
       employeesNumber: company.employeesNumber,
       registrationDate: company.registrationDate,
-      email: company.email
+      email: company.email,
+      userId: company.userId || this.getCurrentUserId() // Add this line
     });
   }
 

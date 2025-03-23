@@ -1,0 +1,224 @@
+<!-- dashboard.component.html -->
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">My Dashboard</h1>
+
+  <!-- User Companies Section -->
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-gray-700">My Companies</h2>
+      <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        Add New Company
+      </button>
+    </div>
+
+    <div *ngIf="loading.companies" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading your companies...</p>
+    </div>
+
+    <div *ngIf="error.companies" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+      {{ error.companies }}
+    </div>
+
+    <div *ngIf="!loading.companies && userCompanies.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
+      <p class="text-gray-600">You don't have any companies yet.</p>
+      <button class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        Create Your First Company
+      </button>
+    </div>
+
+    <div *ngIf="!loading.companies && userCompanies.length > 0"
+         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let company of userCompanies" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6">
+          <h3 class="text-xl font-bold text-gray-800 mb-2">{{ company.name }}</h3>
+          <p class="text-gray-600 mb-4">{{ company.address }}</p>
+
+          <div class="flex justify-between text-sm text-gray-500">
+            <span>Employees: {{ company.employeesNumber }}</span>
+            <span>Since: {{ company.registrationDate | date:'mediumDate' }}</span>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+            <button class="text-blue-500 hover:text-blue-700 mr-4">Edit</button>
+            <button class="text-red-500 hover:text-red-700">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Department Section -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Department</h2>
+
+    <div *ngIf="loading.department" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading your department...</p>
+    </div>
+
+    <div *ngIf="error.department" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+      {{ error.department }}
+    </div>
+
+    <div *ngIf="!loading.department && !userDepartment" class="bg-gray-100 rounded-lg p-6 text-center">
+      <p class="text-gray-600">You are not assigned to any department.</p>
+    </div>
+
+    <div *ngIf="!loading.department && userDepartment" class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ userDepartment.name }}</h3>
+<!--        <p class="text-gray-600 mb-4">{{ userDepartment.description }}</p>-->
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <h4 class="font-medium text-gray-700 mb-2">Contact Information</h4>
+          <p class="text-gray-600">{{ userDepartment.email || 'No email provided' }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Applications Section -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Applications</h2>
+
+    <div *ngIf="loading.applications" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading your applications...</p>
+    </div>
+
+    <div *ngIf="error.applications" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+      {{ error.applications }}
+    </div>
+
+    <div *ngIf="!loading.applications && userApplications.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
+      <p class="text-gray-600">You haven't submitted any applications yet.</p>
+    </div>
+
+    <div *ngIf="!loading.applications && userApplications.length > 0" class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-100">
+        <tr>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Publication</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Company</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Submission Date</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Proposed Budget</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Status</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let application of userApplications">
+          <td class="py-3 px-4 text-gray-800">{{ application.publicationTitle }}</td>
+          <td class="py-3 px-4 text-gray-800">{{ application.companyName }}</td>
+          <td class="py-3 px-4 text-gray-600">{{ application.submissionDate | date:'medium' }}</td>
+          <td class="py-3 px-4 text-gray-600">{{ formatBudget(application.proposedBudget) }}</td>
+          <td class="py-3 px-4">
+              <span
+                class="px-2 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': application.status === 'PENDING',
+                  'bg-green-100 text-green-800': application.status === 'ACCEPTED',
+                  'bg-red-100 text-red-800': application.status === 'REJECTED',
+                  'bg-blue-100 text-blue-800': application.status === 'COMPLETED'
+                }"
+              >
+                {{ application.status }}
+              </span>
+          </td>
+          <td class="py-3 px-4">
+            <button class="text-blue-500 hover:text-blue-700 mr-3">View</button>
+            <a [href]="application.coverLetterPath" target="_blank" class="text-green-500 hover:text-green-700">
+              Download Cover Letter
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Recent Activity</h2>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <ul class="divide-y divide-gray-200">
+        <li *ngFor="let activity of recentActivities" class="p-4 hover:bg-gray-50">
+          <div class="flex items-start">
+            <div class="flex-shrink-0 mr-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <span class="text-blue-500 text-lg">{{ activity.icon }}</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900">{{ activity.title }}</p>
+              <p class="text-sm text-gray-500">{{ activity.description }}</p>
+              <p class="text-xs text-gray-400 mt-1">{{ activity.timestamp | date:'short' }}</p>
+            </div>
+          </div>
+        </li>
+
+        <li *ngIf="recentActivities.length === 0" class="p-4 text-center text-gray-500">
+          No recent activity to display
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Stats Summary Section -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Applications</h3>
+      <p class="text-3xl font-bold text-blue-600">{{ userApplications.length }}</p>
+      <div class="mt-4 text-sm text-gray-500">
+        <span class="flex items-center">
+          <span *ngIf="stats.applicationGrowth > 0" class="text-green-500 mr-1">↑</span>
+          <span *ngIf="stats.applicationGrowth < 0" class="text-red-500 mr-1">↓</span>
+          <span *ngIf="stats.applicationGrowth === 0" class="text-gray-500 mr-1">→</span>
+          {{ stats.applicationGrowth }}% from last month
+        </span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Success Rate</h3>
+      <p class="text-3xl font-bold text-green-600">{{ stats.successRate }}%</p>
+      <div class="mt-4 text-sm text-gray-500">
+        <span>Based on {{ stats.acceptedApplications }} accepted applications</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Average Budget</h3>
+      <p class="text-3xl font-bold text-purple-600">{{ formatBudget(stats.averageBudget) }}</p>
+      <div class="mt-4 text-sm text-gray-500">
+        <span>Across all applications</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions Section -->
+  <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Quick Actions</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <button
+        class="flex items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+        <span class="mr-2">📋</span>
+        Create New Application
+      </button>
+
+      <button
+        class="flex items-center justify-center p-4 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
+        <span class="mr-2">🏢</span>
+        Add Company
+      </button>
+
+      <button
+        class="flex items-center justify-center p-4 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors">
+        <span class="mr-2">📊</span>
+        View Analytics
+      </button>
+    </div>
+  </section>
+</div>

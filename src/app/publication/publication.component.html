@@ -80,7 +80,8 @@
       </div>
 
       <!-- Modal Backdrop -->
-      <div *ngIf="showForm" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 px-4 overflow-y-auto">
+      <div *ngIf="showForm"
+           class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 px-4 overflow-y-auto">
         <!-- Modal Content -->
         <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-90vh overflow-y-auto">
           <!-- Modal Header -->
@@ -93,13 +94,13 @@
               (click)="toggleForm()"
               class="text-white hover:text-gray-200 focus:outline-none"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
             </button>
           </div>
 
-          <!-- Modal Body -->
           <div class="px-8 py-6">
             <form [formGroup]="publicationForm" (ngSubmit)="onSubmit()" class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -148,14 +149,16 @@
                     class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-3 px-4"
                     [ngClass]="{'border-red-500': f['deadlineDate'].invalid && f['deadlineDate'].touched}"
                   />
-                  <span *ngIf="f['deadlineDate'].invalid && f['deadlineDate'].touched" class="text-red-600 text-sm mt-1 block">
+                  <span *ngIf="f['deadlineDate'].invalid && f['deadlineDate'].touched"
+                        class="text-red-600 text-sm mt-1 block">
               Deadline date is required
             </span>
                 </div>
 
                 <!-- Estimated Budget -->
                 <div>
-                  <label for="estimatedBudget" class="block text-sm font-medium text-gray-700 mb-1">Estimated Budget (MAD)</label>
+                  <label for="estimatedBudget" class="block text-sm font-medium text-gray-700 mb-1">Estimated Budget
+                    (MAD)</label>
                   <input
                     type="number"
                     id="estimatedBudget"
@@ -165,7 +168,8 @@
                     placeholder="e.g. 5000000"
                     step="0.01"
                   />
-                  <span *ngIf="f['estimatedBudget'].invalid && f['estimatedBudget'].touched" class="text-red-600 text-sm mt-1 block">
+                  <span *ngIf="f['estimatedBudget'].invalid && f['estimatedBudget'].touched"
+                        class="text-red-600 text-sm mt-1 block">
               Valid budget amount is required
             </span>
                 </div>
@@ -184,7 +188,8 @@
                       {{ category.name }}
                     </option>
                   </select>
-                  <span *ngIf="f['categoryId'].invalid && f['categoryId'].touched" class="text-red-600 text-sm mt-1 block">
+                  <span *ngIf="f['categoryId'].invalid && f['categoryId'].touched"
+                        class="text-red-600 text-sm mt-1 block">
               Category is required
             </span>
                 </div>
@@ -203,7 +208,8 @@
                       {{ department.name }}
                     </option>
                   </select>
-                  <span *ngIf="f['departmentId'].invalid && f['departmentId'].touched" class="text-red-600 text-sm mt-1 block">
+                  <span *ngIf="f['departmentId'].invalid && f['departmentId'].touched"
+                        class="text-red-600 text-sm mt-1 block">
               Department is required
             </span>
                 </div>
@@ -219,7 +225,8 @@
                     [ngClass]="{'border-red-500': f['description'].invalid && f['description'].touched}"
                     placeholder="Enter detailed description of the tender"
                   ></textarea>
-                  <span *ngIf="f['description'].invalid && f['description'].touched" class="text-red-600 text-sm mt-1 block">
+                  <span *ngIf="f['description'].invalid && f['description'].touched"
+                        class="text-red-600 text-sm mt-1 block">
               Description is required
             </span>
                 </div>
@@ -262,7 +269,149 @@
         </div>
       </div>
 
+      <!-- hereee Modal -->
+      <!-- Publication Details Modal -->
+      <div *ngIf="selectedPublication" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="closeModal()">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 overflow-hidden" (click)="$event.stopPropagation()">
+          <!-- Modal Header -->
+          <div class="bg-blue-50 p-6">
+            <div class="flex justify-between items-start">
+              <h2 class="text-2xl font-bold text-gray-800">{{ selectedPublication.title }}</h2>
+              <span
+                class="px-3 py-1 text-xs font-bold rounded-full"
+                [ngClass]="{
+            'bg-yellow-100 text-yellow-800': selectedPublication.status === 'DRAFT',
+            'bg-green-100 text-green-800': selectedPublication.status === 'PUBLISHED',
+            'bg-red-100 text-red-800': selectedPublication.status === 'CANCELLED',
+            'bg-blue-100 text-blue-800': selectedPublication.status === 'COMPLETED'
+          }"
+              >
+          {{ selectedPublication.status }}
+        </span>
+            </div>
+          </div>
 
+          <!-- Modal Body -->
+          <div class="p-6">
+            <h3 class="font-semibold text-lg mb-2">Description</h3>
+            <p class="text-gray-700 mb-6">{{ selectedPublication.description }}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <h3 class="font-semibold text-sm text-gray-600 mb-1">Department</h3>
+                <p class="text-gray-800">{{ getDepartmentName(selectedPublication.departmentId) }}</p>
+              </div>
+              <div>
+                <h3 class="font-semibold text-sm text-gray-600 mb-1">Category</h3>
+                <p class="text-gray-800">{{ getCategoryName(selectedPublication.categoryId) }}</p>
+              </div>
+              <div>
+                <h3 class="font-semibold text-sm text-gray-600 mb-1">Deadline Date</h3>
+                <p class="text-gray-800">{{ selectedPublication.deadlineDate | date:'dd MMMM yyyy' }}</p>
+              </div>
+              <div>
+                <h3 class="font-semibold text-sm text-gray-600 mb-1">Estimated Budget</h3>
+                <p class="text-gray-800">{{ formatBudget(selectedPublication.estimatedBudget) }}</p>
+              </div>
+            </div>
+
+            <!-- Application Form Section -->
+            <div *ngIf="showApplicationForm && selectedPublication.status === 'PUBLISHED'" class="mt-4 border-t pt-6">
+              <h3 class="font-semibold text-xl mb-4">Apply for this Publication</h3>
+
+              <!-- Success and Error messages -->
+              <div *ngIf="applicationSuccessMessage" class="mb-4 p-3 bg-green-100 text-green-800 rounded">
+                {{ applicationSuccessMessage }}
+              </div>
+
+              <div *ngIf="applicationErrorMessage" class="mb-4 p-3 bg-red-100 text-red-800 rounded">
+                {{ applicationErrorMessage }}
+              </div>
+
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="proposedBudget">
+                  Proposed Budget (MAD)*
+                </label>
+                <input
+                  type="number"
+                  id="proposedBudget"
+                  [(ngModel)]="applicationData.proposedBudget"
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your proposed budget"
+                >
+              </div>
+
+              <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="coverLetter">
+                  Cover Letter (PDF)*
+                </label>
+                <input
+                  type="file"
+                  id="coverLetter"
+                  (change)="onFileSelected($event)"
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  accept=".pdf"
+                >
+                <div *ngIf="coverLetterFile" class="text-green-600 text-xs mt-1">
+                  File selected: {{ coverLetterFile.name }}
+                </div>
+                <div *ngIf="!coverLetterFile" class="text-gray-500 text-xs mt-1">
+                  Please upload a PDF file
+                </div>
+              </div>
+
+              <div class="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  (click)="cancelApplication()"
+                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  (click)="submitApplication()"
+                  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  [disabled]="!applicationData.proposedBudget || !coverLetterFile || applicationSubmitting"
+                  [ngClass]="{'opacity-50 cursor-not-allowed': !applicationData.proposedBudget || !coverLetterFile || applicationSubmitting}"
+                >
+                  <span *ngIf="!applicationSubmitting">Submit Application</span>
+                  <span *ngIf="applicationSubmitting">Submitting...</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="bg-gray-50 px-6 py-3 flex justify-end">
+            <!-- Show Apply button for PUBLISHED publications when not showing the form -->
+            <div *ngIf="selectedPublication.status === 'PUBLISHED' && !showApplicationForm" class="flex justify-between w-full">
+              <button
+                (click)="toggleApplicationForm()"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                Apply Now
+              </button>
+              <button
+                (click)="closeModal()"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Close
+              </button>
+            </div>
+
+            <!-- Show only Close button for non-PUBLISHED publications -->
+            <div *ngIf="selectedPublication.status !== 'PUBLISHED'">
+              <button
+                (click)="closeModal()"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="p-6 border-b">
         <div class="flex flex-col md:flex-row gap-4">
           <div class="flex-1">
@@ -296,7 +445,8 @@
         <div *ngIf="filteredPublications.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             *ngFor="let publication of paginatedPublications"
-            class="bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-md transition-all overflow-hidden"
+            class="bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer"
+            (click)="showPublicationModal(publication)"
           >
             <!-- Header with title and status -->
             <div class="p-4 bg-blue-50">
@@ -350,14 +500,15 @@
 
               <!-- Action buttons -->
               <div class="flex justify-end space-x-2 mt-3">
+
                 <button
-                  (click)="editPublication(publication)"
+                  (click)="editPublication(publication, $event)"
                   class="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
                   Edit
                 </button>
                 <button
-                  (click)="deletePublication(publication.id!)"
+                  (click)="deletePublication(publication.id!, $event)"
                   class="text-red-600 hover:text-red-800 text-sm font-medium"
                 >
                   Delete
