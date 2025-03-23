@@ -17,4 +17,9 @@ export const routes: Routes = [
   { path: 'company', component: CompanyComponent },
   { path: 'pubs', component: PublicationComponent},
   {path: 'dashboard', component: DashboardComponent},
+
+  // here
+
+  { path: 'company/edit/:id', component: CompanyComponent },
+  { path: 'pubs/edit/:id', component: PublicationComponent },
 ];

@@ -1,213 +1,5 @@
-<!-- dashboard.component.html -->
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-3xl font-bold text-gray-800 mb-6">My Dashboard</h1>
-
-  <!-- User Companies Section -->
-  <section class="mb-8">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-semibold text-gray-700">My Companies</h2>
-      <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-        Add New Company
-      </button>
-    </div>
-
-    <div *ngIf="loading.companies" class="text-center py-8">
-      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
-      <p class="mt-4 text-gray-600">Loading your companies...</p>
-    </div>
-
-    <div *ngIf="error.companies" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
-      {{ error.companies }}
-    </div>
-
-    <div *ngIf="!loading.companies && userCompanies.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
-      <p class="text-gray-600">You don't have any companies yet.</p>
-      <button class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-        Create Your First Company
-      </button>
-    </div>
-
-    <div *ngIf="!loading.companies && userCompanies.length > 0"
-         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div *ngFor="let company of userCompanies" class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-gray-800 mb-2">{{ company.name }}</h3>
-          <p class="text-gray-600 mb-4">{{ company.address }}</p>
-
-          <div class="flex justify-between text-sm text-gray-500">
-            <span>Employees: {{ company.employeesNumber }}</span>
-            <span>Since: {{ company.registrationDate | date:'mediumDate' }}</span>
-          </div>
-
-          <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
-            <button class="text-blue-500 hover:text-blue-700 mr-4">Edit</button>
-            <button class="text-red-500 hover:text-red-700">Delete</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- User Publications Section -->
-  <section class="mb-8">
-    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Publications</h2>
-
-    <div *ngIf="loading.publications" class="text-center py-8">
-      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
-      <p class="mt-4 text-gray-600">Loading your publications...</p>
-    </div>
-
-    <div *ngIf="error.publications" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
-      {{ error.publications }}
-    </div>
-
-    <div *ngIf="!loading.publications && userPublications.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
-      <p class="text-gray-600">You haven't created any publications yet.</p>
-    </div>
-
-    <div *ngIf="!loading.publications && userPublications.length > 0"
-         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div *ngFor="let publication of userPublications" class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-4 bg-blue-50">
-          <div class="flex justify-between items-start">
-            <h3 class="font-bold text-xl line-clamp-2">{{ publication.title }}</h3>
-            <span
-              class="px-3 py-1 text-xs font-bold rounded-full"
-              [ngClass]="{
-              'bg-yellow-100 text-yellow-800': publication.status === 'DRAFT',
-              'bg-green-100 text-green-800': publication.status === 'PUBLISHED',
-              'bg-red-100 text-red-800': publication.status === 'CANCELLED',
-              'bg-blue-100 text-blue-800': publication.status === 'COMPLETED'
-            }"
-            >
-            {{ publication.status }}
-          </span>
-          </div>
-          <p class="text-sm text-gray-600 mt-2 line-clamp-2">
-            {{ publication.description }}
-          </p>
-        </div>
-
-        <div class="border-b border-gray-200"></div>
-
-        <div class="p-4">
-          <div class="flex gap-4 mb-3">
-            <div class="flex items-center text-sm">
-              <span class="material-symbols-outlined text-gray-500 mr-1 text-base">category</span>
-              <span
-                class="text-gray-700">{{ publication.categoryName || getCategoryName(publication.categoryId) }}</span>
-            </div>
-          </div>
-
-          <div class="flex justify-between items-center">
-            <div class="flex items-center text-sm">
-              <span class="material-symbols-outlined text-gray-500 mr-1 text-base">calendar_month</span>
-              <span class="text-gray-700">{{ publication.deadlineDate | date:'dd MMM yyyy' }}</span>
-            </div>
-            <div class="flex items-center text-sm">
-              <span class="material-symbols-outlined text-gray-500 mr-1 text-base">payments</span>
-              <span class="text-gray-700">{{ formatBudget(publication.estimatedBudget) }}</span>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-2 border-t border-gray-200 flex justify-end space-x-2">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Details</button>
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- User Department Section -->
-  <section class="mb-8">
-    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Department</h2>
-
-    <div *ngIf="loading.department" class="text-center py-8">
-      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
-      <p class="mt-4 text-gray-600">Loading your department...</p>
-    </div>
-
-    <div *ngIf="error.department" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
-      {{ error.department }}
-    </div>
-
-    <div *ngIf="!loading.department && !userDepartment" class="bg-gray-100 rounded-lg p-6 text-center">
-      <p class="text-gray-600">You are not assigned to any department.</p>
-    </div>
-
-    <div *ngIf="!loading.department && userDepartment" class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ userDepartment.name }}</h3>
-        <!--        <p class="text-gray-600 mb-4">{{ userDepartment.description }}</p>-->
-
-        <div class="mt-4 pt-4 border-t border-gray-200">
-          <h4 class="font-medium text-gray-700 mb-2">Contact Information</h4>
-          <p class="text-gray-600">{{ userDepartment.email || 'No email provided' }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- User Applications Section -->
-  <section class="mb-8">
-    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Applications</h2>
-
-    <div *ngIf="loading.applications" class="text-center py-8">
-      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
-      <p class="mt-4 text-gray-600">Loading your applications...</p>
-    </div>
-
-    <div *ngIf="error.applications" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
-      {{ error.applications }}
-    </div>
-
-    <div *ngIf="!loading.applications && userApplications.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
-      <p class="text-gray-600">You haven't submitted any applications yet.</p>
-    </div>
-
-    <div *ngIf="!loading.applications && userApplications.length > 0" class="overflow-x-auto">
-      <table class="min-w-full bg-white">
-        <thead class="bg-gray-100">
-        <tr>
-          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Publication</th>
-          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Company</th>
-          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Submission Date</th>
-          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Proposed Budget</th>
-          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Status</th>
-          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Actions</th>
-        </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-        <tr *ngFor="let application of userApplications">
-          <td class="py-3 px-4 text-gray-800">{{ application.publicationTitle }}</td>
-          <td class="py-3 px-4 text-gray-800">{{ application.companyName }}</td>
-          <td class="py-3 px-4 text-gray-600">{{ application.submissionDate | date:'medium' }}</td>
-          <td class="py-3 px-4 text-gray-600">{{ formatBudget(application.proposedBudget) }}</td>
-          <td class="py-3 px-4">
-              <span
-                class="px-2 py-1 text-xs font-semibold rounded-full"
-                [ngClass]="{
-                  'bg-yellow-100 text-yellow-800': application.status === 'PENDING',
-                  'bg-green-100 text-green-800': application.status === 'ACCEPTED',
-                  'bg-red-100 text-red-800': application.status === 'REJECTED',
-                  'bg-blue-100 text-blue-800': application.status === 'COMPLETED'
-                }"
-              >
-                {{ application.status }}
-              </span>
-          </td>
-          <td class="py-3 px-4">
-            <button class="text-blue-500 hover:text-blue-700 mr-3">View</button>
-            <a [href]="application.coverLetterPath" target="_blank" class="text-green-500 hover:text-green-700">
-              Download Cover Letter
-            </a>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
 
   <section class="mb-8">
     <h2 class="text-2xl font-semibold text-gray-700 mb-4">Recent Activity</h2>
@@ -273,14 +65,14 @@
     <h2 class="text-xl font-semibold text-gray-700 mb-4">Quick Actions</h2>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <button
-        class="flex items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+      <button (click)="showAddPublicationModal()"
+              class="flex items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
         <span class="mr-2">📋</span>
         Create New Application
       </button>
 
-      <button
-        class="flex items-center justify-center p-4 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
+      <button (click)="showAddCompanyModal()"
+              class="flex items-center justify-center p-4 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
         <span class="mr-2">🏢</span>
         Add Company
       </button>
@@ -292,4 +84,518 @@
       </button>
     </div>
   </section>
+
+
+  <!-- Company Details Modal -->
+  <div *ngIf="selectedCompanyForView"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-6 max-w-lg w-full">
+      <h3 class="text-2xl font-bold mb-4">{{ selectedCompanyForView.name }}</h3>
+
+      <div class="mb-4">
+        <p class="text-gray-600 mb-2"><strong>Address:</strong></p>
+        <p>{{ selectedCompanyForView.address }}</p>
+      </div>
+
+      <div class="mb-4">
+        <p class="text-gray-600 mb-2"><strong>Email:</strong></p>
+        <p>{{ selectedCompanyForView.email || 'No email provided' }}</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <p class="text-gray-600 mb-2"><strong>Number of Employees:</strong></p>
+          <p>{{ selectedCompanyForView.employeesNumber }}</p>
+        </div>
+        <div>
+          <p class="text-gray-600 mb-2"><strong>Registration Date:</strong></p>
+          <p>{{ selectedCompanyForView.registrationDate | date:'fullDate' }}</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6 space-x-3">
+        <button
+          (click)="showEditCompanyModal(selectedCompanyForView)"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Edit
+        </button>
+        <button
+          (click)="closeCompanyViewModal()"
+          class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Company Edit Modal -->
+  <div *ngIf="selectedCompanyForEdit"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-6 max-w-lg w-full">
+      <h3 class="text-2xl font-bold mb-4">Edit Company</h3>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="companyName">
+          Company Name
+        </label>
+        <input
+          id="companyName"
+          [(ngModel)]="selectedCompanyForEdit.name"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="text"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="companyAddress">
+          Address
+        </label>
+        <input
+          id="companyAddress"
+          [(ngModel)]="selectedCompanyForEdit.address"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="text"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="employeesNumber">
+          Number of Employees
+        </label>
+        <input
+          id="employeesNumber"
+          [(ngModel)]="selectedCompanyForEdit.employeesNumber"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="number"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="companyEmail">
+          Email
+        </label>
+        <input
+          id="companyEmail"
+          [(ngModel)]="selectedCompanyForEdit.email"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="email"
+        />
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          (click)="closeCompanyEditModal()"
+          class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="saveCompany()"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Company Modal -->
+  <div *ngIf="newCompany"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-6 max-w-lg w-full">
+      <h3 class="text-2xl font-bold mb-4">Add New Company</h3>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="newCompanyName">
+          Company Name
+        </label>
+        <input
+          id="newCompanyName"
+          [(ngModel)]="newCompany.name"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="text"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="newCompanyAddress">
+          Address
+        </label>
+        <input
+          id="newCompanyAddress"
+          [(ngModel)]="newCompany.address"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="text"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="newEmployeesNumber">
+          Number of Employees
+        </label>
+        <input
+          id="newEmployeesNumber"
+          [(ngModel)]="newCompany.employeesNumber"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="number"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="newCompanyEmail">
+          Email
+        </label>
+        <input
+          id="newCompanyEmail"
+          [(ngModel)]="newCompany.email"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          type="email"
+        />
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          (click)="closeCompanyModal()"
+          class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="saveNewCompany()"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Create Company
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+
+
+<!--anana-->
+
+
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">My Dashboard</h1>
+
+  <!-- User Companies Section -->
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-gray-700">My Companies</h2>
+      <button (click)="showAddCompanyModal()"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        Add New Company
+      </button>
+    </div>
+
+    <!-- Company loading/error states -->
+    <div *ngIf="loading.companies" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading companies...</p>
+    </div>
+    <div *ngIf="error.companies" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">{{ error.companies }}</div>
+
+    <!-- Company list -->
+    <div *ngIf="userCompanies.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let company of userCompanies" class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ company.name }}</h3>
+        <p class="text-gray-600 mb-4">{{ company.address }}</p>
+        <div class="flex justify-between text-sm text-gray-500">
+          <span>Employees: {{ company.employeesNumber }}</span>
+          <span>{{ company.registrationDate | date:'mediumDate' }}</span>
+        </div>
+        <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+          <button (click)="showEditCompanyModal(company)" class="text-blue-500 hover:text-blue-700 mr-4">Edit</button>
+          <button (click)="deleteCompany(company.id!)" class="text-red-500 hover:text-red-700">Delete</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Publications Section -->
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-gray-700">My Publications</h2>
+      <button (click)="showAddPublicationModal()"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        Create Publication
+      </button>
+    </div>
+
+    <!-- Publication loading/error states -->
+    <div *ngIf="loading.publications" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading publications...</p>
+    </div>
+    <div *ngIf="error.publications" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">{{ error.publications }}</div>
+
+    <!-- Publication list -->
+    <div *ngIf="userPublications.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let publication of userPublications" class="bg-white rounded-lg shadow-md">
+        <div class="p-4 bg-blue-50">
+          <div class="flex justify-between items-start">
+            <h3 class="font-bold text-xl">{{ publication.title }}</h3>
+            <span class="px-3 py-1 text-xs font-bold rounded-full"
+                  [ngClass]="{
+                    'bg-yellow-100 text-yellow-800': publication.status === 'DRAFT',
+                    'bg-green-100 text-green-800': publication.status === 'PUBLISHED'
+                  }">
+              {{ publication.status }}
+            </span>
+          </div>
+          <p class="text-sm text-gray-600 mt-2 line-clamp-3">{{ publication.description }}</p>
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm text-gray-700">{{ getCategoryName(publication.categoryId) }}</div>
+            <div class="text-sm text-gray-700">{{ formatBudget(publication.estimatedBudget) }}</div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div class="text-sm text-gray-500">{{ publication.deadlineDate | date:'dd MMM yyyy' }}</div>
+            <div class="flex space-x-2">
+              <button (click)="showPublicationModal(publication)" class="text-blue-600 hover:text-blue-800 text-sm">
+                View
+              </button>
+              <button (click)="showEditPublicationModal(publication)" class="text-blue-600 hover:text-blue-800 text-sm">
+                Edit
+              </button>
+              <button (click)="deletePublication(publication.id!)" class="text-red-600 hover:text-red-800 text-sm">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Department Section -->
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-gray-700">My Department</h2>
+      <button *ngIf="userDepartment" (click)="showEditDepartmentModal(userDepartment)"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        Edit Department
+      </button>
+    </div>
+
+    <!-- Department loading/error states -->
+    <div *ngIf="loading.department" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading department...</p>
+    </div>
+    <div *ngIf="error.department" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">{{ error.department }}</div>
+
+    <!-- Department details -->
+    <div *ngIf="userDepartment" class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ userDepartment.name }}</h3>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="border-t pt-4">
+            <h4 class="font-medium text-gray-700 mb-2">Address</h4>
+            <p class="text-gray-600">{{ userDepartment.address || 'No address provided' }}</p>
+          </div>
+          <div class="border-t pt-4">
+            <h4 class="font-medium text-gray-700 mb-2">Contact</h4>
+            <p class="text-gray-600">{{ userDepartment.email || 'No email' }}</p>
+            <p class="text-gray-600">{{ userDepartment.phone || 'No phone' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Other sections (applications, stats, etc.) remain the same -->
+
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Applications</h2>
+
+    <div *ngIf="loading.applications" class="text-center py-8">
+      <div class="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading your applications...</p>
+    </div>
+
+    <div *ngIf="error.applications" class="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+      {{ error.applications }}
+    </div>
+
+    <div *ngIf="!loading.applications && userApplications.length === 0" class="bg-gray-100 rounded-lg p-6 text-center">
+      <p class="text-gray-600">You haven't submitted any applications yet.</p>
+    </div>
+
+    <div *ngIf="!loading.applications && userApplications.length > 0" class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-100">
+        <tr>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Publication</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Company</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Submission Date</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Proposed Budget</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Status</th>
+          <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let application of userApplications">
+          <td class="py-3 px-4 text-gray-800">{{ application.publicationTitle }}</td>
+          <td class="py-3 px-4 text-gray-800">{{ application.companyName }}</td>
+          <td class="py-3 px-4 text-gray-600">{{ application.submissionDate | date:'medium' }}</td>
+          <td class="py-3 px-4 text-gray-600">{{ formatBudget(application.proposedBudget) }}</td>
+          <td class="py-3 px-4">
+              <span
+                class="px-2 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': application.status === 'PENDING',
+                  'bg-green-100 text-green-800': application.status === 'ACCEPTED',
+                  'bg-red-100 text-red-800': application.status === 'REJECTED',
+                  'bg-blue-100 text-blue-800': application.status === 'COMPLETED'
+                }"
+              >
+                {{ application.status }}
+              </span>
+          </td>
+          <td class="py-3 px-4">
+            <button class="text-blue-500 hover:text-blue-700 mr-3">View</button>
+            <a [href]="application.coverLetterPath" target="_blank" class="text-green-500 hover:text-green-700">
+              Download Cover Letter
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODALS -->
+  <!-- Publication View/Edit Modal -->
+  <div *ngIf="selectedPublication"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full">
+      <h2 class="text-2xl font-bold mb-4">{{ isViewMode ? 'Publication Details' : 'Edit Publication' }}</h2>
+
+      <div *ngIf="isViewMode">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-gray-600 mb-2"><strong>Title:</strong></p>
+            <p>{{ selectedPublication.title }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600 mb-2"><strong>Status:</strong></p>
+            <span class="px-3 py-1 text-xs font-bold rounded-full"
+                  [ngClass]="{
+                    'bg-yellow-100 text-yellow-800': selectedPublication.status === 'DRAFT',
+                    'bg-green-100 text-green-800': selectedPublication.status === 'PUBLISHED'
+                  }">
+              {{ selectedPublication.status }}
+            </span>
+          </div>
+          <div>
+            <p class="text-gray-600 mb-2"><strong>Budget:</strong></p>
+            <p>{{ formatBudget(selectedPublication.estimatedBudget) }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600 mb-2"><strong>Deadline:</strong></p>
+            <p>{{ selectedPublication.deadlineDate | date:'fullDate' }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600 mb-2"><strong>Category:</strong></p>
+            <p>{{ getCategoryName(selectedPublication.categoryId) }}</p>
+          </div>
+        </div>
+        <p class="text-gray-600 mb-4">{{ selectedPublication.description }}</p>
+      </div>
+
+      <form *ngIf="!isViewMode" (ngSubmit)="savePublication()">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Title</label>
+          <input type="text" [(ngModel)]="selectedPublication.title" name="title" class="w-full p-2 border rounded"
+                 required>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+          <textarea [(ngModel)]="selectedPublication.description" name="description"
+                    class="w-full p-2 border rounded" rows="4" required></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Budget</label>
+            <input type="number" [(ngModel)]="selectedPublication.estimatedBudget" name="budget"
+                   class="w-full p-2 border rounded" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Deadline</label>
+            <input type="date" [(ngModel)]="selectedPublication.deadlineDate" name="deadline"
+                   class="w-full p-2 border rounded" required>
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
+            <select [(ngModel)]="selectedPublication.categoryId" name="categoryId" class="w-full p-2 border rounded">
+              <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+            <select [(ngModel)]="selectedPublication.status" name="status" class="w-full p-2 border rounded">
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" (click)="closeModal()" class="px-4 py-2 border border-gray-300 rounded">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Save Changes</button>
+        </div>
+      </form>
+
+      <div *ngIf="isViewMode" class="flex justify-end gap-3 mt-6">
+        <button (click)="isViewMode = false" class="px-4 py-2 bg-blue-500 text-white rounded">Edit</button>
+        <button (click)="closeModal()" class="px-4 py-2 border border-gray-300 rounded">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Department Edit Modal -->
+  <div *ngIf="selectedDepartmentForEdit"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-6 max-w-lg w-full">
+      <h3 class="text-2xl font-bold mb-4">Edit Department</h3>
+      <form (ngSubmit)="saveDepartment()">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Name</label>
+          <input type="text" [(ngModel)]="selectedDepartmentForEdit.name" name="name" class="w-full p-2 border rounded"
+                 required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Address</label>
+          <input type="text" [(ngModel)]="selectedDepartmentForEdit.address" name="address"
+                 class="w-full p-2 border rounded">
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+          <input type="email" [(ngModel)]="selectedDepartmentForEdit.email" name="email"
+                 class="w-full p-2 border rounded">
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Phone</label>
+          <input type="tel" [(ngModel)]="selectedDepartmentForEdit.phone" name="phone"
+                 class="w-full p-2 border rounded">
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" (click)="closeDepartmentEditModal()" class="px-4 py-2 border border-gray-300 rounded">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Existing company modals remain the same -->
+</div>
+
+

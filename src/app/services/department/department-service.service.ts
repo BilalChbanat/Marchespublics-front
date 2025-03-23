@@ -52,7 +52,6 @@ export class DepartmentService {
   }
 
   updateDepartment(id: number, department: Department): Observable<Department> {
-    // Ensure userId is set from the current authenticated user
     const currentUserId = this.authService.getCurrentUserId();
     if (!currentUserId) {
       throw new Error('No authenticated user found');

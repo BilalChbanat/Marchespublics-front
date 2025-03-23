@@ -1,30 +1,45 @@
-import {Component, OnInit} from '@angular/core';
-import {CompanyService, Company} from '../../services/company/company.service';
-import {DepartmentService, Department} from '../../services/department/department-service.service';
-import {ApplicationService, ApplicationDto} from '../../services/application/application.service';
-import {NgClass, NgForOf, NgIf, DatePipe} from '@angular/common';
-import {PublicationService} from '../../services/publication/publication.service';
-import {CategoryService} from '../../services/category/category.service';
+import { Component, OnInit } from '@angular/core';
+import { CompanyService, Company } from '../../services/company/company.service';
+import { DepartmentService, Department } from '../../services/department/department-service.service';
+import { ApplicationService, ApplicationDto } from '../../services/application/application.service';
+import { NgClass, NgForOf, NgIf, DatePipe } from '@angular/common';
+import { PublicationService, Publication } from '../../services/publication/publication.service';
+import { CategoryService, Category } from '../../services/category/category.service';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgClass, NgForOf, NgIf, DatePipe],
+  imports: [NgClass, NgForOf, NgIf, DatePipe, RouterModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   userCompanies: Company[] = [];
-  userPublications: any[] = [];
-  categories: any[] = [];
+  userPublications: Publication[] = [];
+  categories: Category[] = [];
   userDepartment: Department | null = null;
   userApplications: ApplicationDto[] = [];
+
+  // Modal state variables
+  selectedPublication: Publication | null = null;
+  isViewMode: boolean = true; // Controls if publication modal is in view or edit mode
+  newPublication: Publication | null = null; // For adding new publication
+
+  selectedCompanyForEdit: Company | null = null;
+  selectedCompanyForView: Company | null = null;
+  newCompany: Company | null = null;
+
+  selectedApplicationForView: ApplicationDto | null = null;
+
   loading = {
     companies: false,
     department: false,
     applications: false,
     publications: false
   };
+
   error = {
     companies: '',
     department: '',
@@ -32,69 +47,19 @@ export class DashboardComponent implements OnInit {
     publications: ''
   };
 
-  constructor(
-    private companyService: CompanyService,
-    private departmentService: DepartmentService,
-    private applicationService: ApplicationService,
-    private publicationService: PublicationService,
-    private categoryService: CategoryService
-  ) {
-  }
+  stats = {
+    applicationGrowth: 15,
+    successRate: 75,
+    acceptedApplications: 0,
+    averageBudget: 0
+  };
 
-  ngOnInit(): void {
-    this.loadUserData();
-    this.loadCategories();
-  }
-
-  loadUserData(): void {
-    this.loadUserCompanies();
-    this.loadUserDepartment();
-    this.loadUserApplications();
-    this.loadUserPublications();
-  }
-
-  loadUserCompanies(): void {
-    this.loading.companies = true;
-    const userId = this.getCurrentUserId();
-
-    // Assuming you've added a method to get companies by user ID
-    this.companyService.getCompaniesByUserId(userId).subscribe({
-      next: (companies) => {
-        this.userCompanies = companies;
-        this.loading.companies = false;
-      },
-      error: (error) => {
-        console.error('Error loading user companies:', error);
-        this.error.companies = 'Failed to load your companies';
-        this.loading.companies = false;
-      }
-    });
-  }
-
-  loadUserDepartment(): void {
-    this.loading.department = true;
-    const userId = this.getCurrentUserId();
-
-    // Assuming you've added a method to get department by user ID
-    this.departmentService.getDepartmentByUserId(userId).subscribe({
-      next: (department) => {
-        this.userDepartment = department;
-        this.loading.department = false;
-      },
-      error: (error) => {
-        console.error('Error loading user department:', error);
-        this.error.department = 'Failed to load your department';
-        this.loading.department = false;
-      }
-    });
-  }
-
-  recentActivities: any[] = [
+  recentActivities = [
     {
       icon: '📝',
       title: 'Application Submitted',
       description: 'You submitted an application for "Office Renovation Project"',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000)
     },
     {
       icon: '✅',
@@ -104,174 +69,328 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  stats = {
-    applicationGrowth: 15,
-    successRate: 75,
-    acceptedApplications: 0,
-    averageBudget: 0
-  };
+  constructor(
+    private companyService: CompanyService,
+    private departmentService: DepartmentService,
+    private applicationService: ApplicationService,
+    private publicationService: PublicationService,
+    private categoryService: CategoryService
+  ) {}
 
-  calculateStats(): void {
-    if (this.userApplications.length > 0) {
-      this.stats.acceptedApplications = this.userApplications.filter(app =>
-        app.status === 'ACCEPTED'
-      ).length;
-
-      this.stats.successRate = Math.round(
-        (this.stats.acceptedApplications / this.userApplications.length) * 100
-      );
-
-      const totalBudget = this.userApplications.reduce(
-        (sum, app) => sum + (app.proposedBudget || 0), 0
-      );
-      this.stats.averageBudget = totalBudget / this.userApplications.length;
-    } else {
-      this.stats.acceptedApplications = 0;
-      this.stats.successRate = 0;
-      this.stats.averageBudget = 0;
-    }
+  ngOnInit(): void {
+    this.loadUserData();
+    this.loadCategories();
   }
 
-  // In dashboard.component.ts, modify the loadUserApplications method
-  loadUserApplications(): void {
-    this.loading.applications = true;
-    const userId = this.getCurrentUserId();
-    console.log('Loading applications for user ID:', userId);
+  private loadUserData(): void {
+    this.loadUserCompanies();
+    this.loadUserDepartment();
+    this.loadUserApplications();
+    this.loadUserPublications();
+  }
 
-    this.companyService.getCompaniesByUserId(userId).subscribe({
+  private loadUserCompanies(): void {
+    this.loading.companies = true;
+    this.companyService.getCompaniesByUserId(this.getCurrentUserId()).subscribe({
       next: (companies) => {
-        console.log('User companies:', companies);
-        if (companies && companies.length > 0) {
-          const companyIds = companies.map(company => company.id!);
-          console.log('Company IDs:', companyIds);
-
-          let allApplications: ApplicationDto[] = [];
-          let completedRequests = 0;
-
-          companyIds.forEach(companyId => {
-            console.log('Fetching applications for company ID:', companyId);
-
-            // Let's inspect the exact URL being called
-            const url = `${this.applicationService['apiUrl']}/company/${companyId}`;
-            console.log('Calling endpoint:', url);
-
-            this.applicationService.getApplicationsByCompany(companyId).subscribe({
-              next: (response) => {
-                console.log('Raw response for company ID ' + companyId + ':', response);
-                console.log('Response type:', typeof response);
-
-                try {
-                  // Handle different response formats
-                  if (response && response.content && Array.isArray(response.content)) {
-                    console.log('Processing paginated response:', response.content);
-                    allApplications = [...allApplications, ...response.content];
-                  } else if (Array.isArray(response)) {
-                    console.log('Processing array response:', response);
-                    allApplications = [...allApplications, ...response];
-                  } else if (response && typeof response === 'object') {
-                    console.log('Processing object response:', response);
-                    // Check if it's a Page object without a content property
-                    if (response.hasOwnProperty('pageable') && response.hasOwnProperty('totalElements')) {
-                      console.log('Detected Page object without content property');
-                      // This might be a Spring Data Page serialized differently
-                      allApplications.push(response);
-                    } else {
-                      // It's likely a single application
-                      allApplications.push(response);
-                    }
-                  }
-                } catch (err) {
-                  console.error('Error processing applications response:', err);
-                }
-
-                completedRequests++;
-                console.log(`Completed ${completedRequests} of ${companyIds.length} requests`);
-
-                if (completedRequests === companyIds.length) {
-                  console.log('Final applications:', allApplications);
-                  console.log('Number of applications:', allApplications.length);
-                  this.userApplications = allApplications;
-                  this.loading.applications = false;
-                  this.calculateStats();
-                }
-              },
-              error: (error) => {
-                console.error(`Error loading applications for company ${companyId}:`, error);
-                console.error('Full error details:', JSON.stringify(error));
-                completedRequests++;
-
-                if (completedRequests === companyIds.length) {
-                  this.loading.applications = false;
-                  this.calculateStats();
-                }
-              }
-            });
-          });
-        } else {
-          console.log('No companies found for user.');
-          this.userApplications = [];
-          this.loading.applications = false;
-          this.calculateStats();
-        }
+        this.userCompanies = companies;
+        this.loading.companies = false;
       },
       error: (error) => {
-        console.error('Error loading user companies for applications:', error);
-        this.error.applications = 'Failed to load your applications';
-        this.loading.applications = false;
+        this.handleError('companies', 'Failed to load companies', error);
       }
     });
   }
 
-  getCurrentUserId(): number {
-    const userJson = localStorage.getItem('user');
-    if (userJson) {
-      try {
-        const user = JSON.parse(userJson);
-        if (user && user.id) {
-          return user.id;
-        }
-      } catch (e) {
-        console.error('Error parsing user data', e);
-      }
-    }
-    return 0; // Default value, handle appropriately in your application
-  }
-
-  // Helper method to format currency values
-  formatBudget(budget: number): string {
-    return new Intl.NumberFormat('fr-MA', {style: 'currency', currency: 'MAD'}).format(budget);
-  }
-
-  loadUserPublications(): void {
+  private loadUserPublications(): void {
     this.loading.publications = true;
-    const userId = this.getCurrentUserId();
-
-    this.publicationService.getPublicationsByUserId(userId).subscribe({
+    this.publicationService.getPublicationsByUserId(this.getCurrentUserId()).subscribe({
       next: (publications) => {
         this.userPublications = publications;
         this.loading.publications = false;
       },
       error: (error) => {
-        console.error('Error loading user publications:', error);
-        this.error.publications = 'Failed to load your publications';
-        this.loading.publications = false;
+        this.handleError('publications', 'Failed to load publications', error);
       }
     });
   }
-  loadCategories(): void {
-    this.categoryService.getAllCategories().subscribe({
-      next: (response: any) => {
-        if (response && response.content) {
-          this.categories = response.content;
+
+  private loadUserDepartment(): void {
+    this.loading.department = true;
+    this.departmentService.getDepartmentByUserId(this.getCurrentUserId()).subscribe({
+      next: (department) => {
+        this.userDepartment = department;
+        this.loading.department = false;
+      },
+      error: (error) => {
+        this.handleError('department', 'Failed to load department', error);
+      }
+    });
+  }
+
+  private loadUserApplications(): void {
+    this.loading.applications = true;
+    this.companyService.getCompaniesByUserId(this.getCurrentUserId()).subscribe({
+      next: (companies) => {
+        if (companies.length > 0) {
+          this.loadApplicationsForCompanies(companies);
+        } else {
+          this.loading.applications = false;
         }
       },
       error: (error) => {
-        console.error('Error loading categories:', error);
+        this.handleError('applications', 'Failed to load applications', error);
       }
     });
   }
+
+  private loadApplicationsForCompanies(companies: Company[]): void {
+    const companyIds = companies.map(company => company.id!);
+    let allApplications: ApplicationDto[] = [];
+    let completedRequests = 0;
+
+    companyIds.forEach(companyId => {
+      this.applicationService.getApplicationsByCompany(companyId).subscribe({
+        next: (response) => {
+          if (response.content) {
+            allApplications = [...allApplications, ...response.content];
+          }
+          if (++completedRequests === companyIds.length) {
+            this.userApplications = allApplications;
+            this.calculateStats();
+            this.loading.applications = false;
+          }
+        },
+        error: (error) => {
+          if (++completedRequests === companyIds.length) {
+            this.loading.applications = false;
+            this.calculateStats();
+          }
+        }
+      });
+    });
+  }
+
+  private loadCategories(): void {
+    this.categoryService.getAllCategories().subscribe({
+      next: (response) => {
+        if (response.content) this.categories = response.content;
+      },
+      error: (error) => console.error('Error loading categories:', error)
+    });
+  }
+
+  private calculateStats(): void {
+    this.stats.acceptedApplications = this.userApplications.filter(
+      app => app.status === 'ACCEPTED'
+    ).length;
+
+    this.stats.successRate = this.userApplications.length > 0
+      ? Math.round((this.stats.acceptedApplications / this.userApplications.length) * 100)
+      : 0;
+
+    this.stats.averageBudget = this.userApplications.length > 0
+      ? this.userApplications.reduce((sum, app) => sum + (app.proposedBudget || 0), 0) / this.userApplications.length
+      : 0;
+  }
+
+  // Company actions
+  showCompanyDetailsModal(company: Company): void {
+    this.selectedCompanyForView = { ...company };
+  }
+
+  showEditCompanyModal(company: Company): void {
+    this.selectedCompanyForEdit = { ...company }; // Clone to avoid direct binding
+    this.selectedCompanyForView = null; // Close view modal if open
+  }
+
+  showAddCompanyModal(): void {
+    // Initialize new company with default values
+    this.newCompany = {
+      name: '',
+      address: '',
+      employeesNumber: 0,
+      registrationDate: new Date().toISOString(),
+      email: '',
+      userId: this.getCurrentUserId()
+    };
+  }
+
+  closeCompanyEditModal(): void {
+    this.selectedCompanyForEdit = null;
+  }
+
+  closeCompanyViewModal(): void {
+    this.selectedCompanyForView = null;
+  }
+
+  closeCompanyModal(): void {
+    this.selectedCompanyForEdit = null;
+    this.selectedCompanyForView = null;
+    this.newCompany = null;
+  }
+
+  saveCompany(): void {
+    if (this.selectedCompanyForEdit && this.selectedCompanyForEdit.id) {
+      this.companyService.updateCompany(this.selectedCompanyForEdit.id, this.selectedCompanyForEdit).subscribe({
+        next: () => {
+          this.loadUserCompanies();
+          this.closeCompanyEditModal();
+        },
+        error: (error) => {
+          console.error('Error updating company:', error);
+        }
+      });
+    }
+  }
+
+  saveNewCompany(): void {
+    if (this.newCompany) {
+      this.companyService.createCompany(this.newCompany).subscribe({
+        next: () => {
+          this.loadUserCompanies();
+          this.closeCompanyModal();
+        },
+        error: (error) => {
+          console.error('Error creating company:', error);
+        }
+      });
+    }
+  }
+
+  deleteCompany(id: number): void {
+    if (confirm('Are you sure you want to delete this company?')) {
+      this.companyService.deleteCompany(id).subscribe({
+        next: () => this.loadUserCompanies(),
+        error: (error) => console.error('Delete failed:', error)
+      });
+    }
+  }
+
+  // Publication actions
+  showPublicationModal(publication: Publication): void {
+    this.selectedPublication = {...publication};
+    this.isViewMode = true;
+  }
+
+  showAddPublicationModal(): void {
+    // Initialize new publication with default values
+    this.newPublication = {
+      title: '',
+      description: '',
+      deadlineDate: new Date().toISOString(),
+      estimatedBudget: 0,
+      categoryId: this.categories.length > 0 ? this.categories[0].id : 0,
+      departmentId: this.userDepartment?.id || 0,
+      status: 'DRAFT'
+    };
+  }
+
+  deletePublication(id: number): void {
+    if (confirm('Are you sure you want to delete this publication?')) {
+      this.publicationService.deletePublication(id).subscribe({
+        next: () => this.loadUserPublications(),
+        error: (error) => console.error('Delete failed:', error)
+      });
+    }
+  }
+
+  // Application actions
+  showApplicationModal(application: ApplicationDto): void {
+    this.selectedApplicationForView = application;
+  }
+
+  closeApplicationModal(): void {
+    this.selectedApplicationForView = null;
+  }
+
+  getCurrentUserId(): number {
+    const userJson = localStorage.getItem('user');
+    return userJson ? JSON.parse(userJson).id : 0;
+  }
+
+  formatBudget(budget: number): string {
+    return new Intl.NumberFormat('fr-MA', {
+      style: 'currency',
+      currency: 'MAD'
+    }).format(budget);
+  }
+
   getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
-    return category ? category.name : 'Unknown Category';
+    return category?.name || 'Unknown Category';
+  }
+
+  private handleError(field: keyof typeof this.error, message: string, error: any): void {
+    console.error(message, error);
+    this.error[field] = message;
+    this.loading[field] = false;
+  }
+
+  showEditPublicationModal(publication: Publication): void {
+    this.selectedPublication = {...publication};
+    this.isViewMode = false;
+  }
+
+  closeModal(): void {
+    this.selectedPublication = null;
+    this.newPublication = null;
+    this.isViewMode = true;
+  }
+
+  savePublication(): void {
+    if (this.selectedPublication && this.selectedPublication.id) {
+      this.publicationService.updatePublication(this.selectedPublication.id, this.selectedPublication)
+        .subscribe({
+          next: () => {
+            this.loadUserPublications();
+            this.closeModal();
+          },
+          error: (error) => {
+            console.error('Error updating publication:', error);
+          }
+        });
+    }
+  }
+
+  saveNewPublication(): void {
+    if (this.newPublication) {
+      this.newPublication.departmentId = this.getCurrentUserId();
+      this.publicationService.createPublication(this.newPublication)
+        .subscribe({
+          next: () => {
+            this.loadUserPublications();
+            this.closeModal();
+          },
+          error: (error) => {
+            console.error('Error creating publication:', error);
+            // Add error handling logic here
+          }
+        });
+    }
+  }
+
+  selectedDepartmentForEdit: Department | null = null;
+
+  showEditDepartmentModal(department: Department): void {
+    this.selectedDepartmentForEdit = { ...department };
+  }
+
+  closeDepartmentEditModal(): void {
+    this.selectedDepartmentForEdit = null;
+  }
+
+  saveDepartment(): void {
+    if (this.selectedDepartmentForEdit && this.selectedDepartmentForEdit.id) {
+      this.departmentService.updateDepartment(this.selectedDepartmentForEdit.id, this.selectedDepartmentForEdit).subscribe({
+        next: () => {
+          this.loadUserDepartment();
+          this.closeDepartmentEditModal();
+        },
+        error: (error) => {
+          console.error('Error updating department:', error);
+        }
+      });
+    }
   }
 }
