@@ -174,5 +174,11 @@ export class AuthService {
       console.error('Error decoding JWT:', error);
       return {};
     }
+
+
+  }
+  isAuthenticated(): boolean {
+    const token = localStorage.getItem('auth_token');
+    return !!token;
   }
 }

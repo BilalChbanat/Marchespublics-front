@@ -7,19 +7,22 @@ import {DepartmentComponent} from './department/department.component';
 import {CompanyComponent} from './company/company.component';
 import {PublicationComponent} from './publication/publication.component';
 import {DashboardComponent} from './pages/dashboard/dashboard.component';
+import {AuthGuard} from './guards/auth/auth-guard.guard';
+import {GuestGuard} from './guards/GuestGuard/guest-guard.guard';
 
 export const routes: Routes = [
   {path: '', component: LangingComponent},
-  {path: 'signup', component: RegisterComponent},
-  {path: 'login', component: LoginComponent},
-  {path: 'profile', component: ProfileComponent},
-  { path: 'departments', component: DepartmentComponent },
-  { path: 'company', component: CompanyComponent },
-  { path: 'pubs', component: PublicationComponent},
-  {path: 'dashboard', component: DashboardComponent},
+  {path: 'signup', component: RegisterComponent, canActivate: [GuestGuard]},
+  {path: 'login', component: LoginComponent, canActivate: [GuestGuard]},
+
+  {path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'departments', component: DepartmentComponent, canActivate: [AuthGuard]  },
+  { path: 'company', component: CompanyComponent, canActivate: [AuthGuard]  },
+  { path: 'pubs', component: PublicationComponent, canActivate: [AuthGuard] },
+  {path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
 
   // here
 
-  { path: 'company/edit/:id', component: CompanyComponent },
-  { path: 'pubs/edit/:id', component: PublicationComponent },
+  { path: 'company/edit/:id', component: CompanyComponent, canActivate: [AuthGuard]  },
+  { path: 'pubs/edit/:id', component: PublicationComponent, canActivate: [AuthGuard]  },
 ];
