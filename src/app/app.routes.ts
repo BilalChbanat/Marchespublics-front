@@ -12,6 +12,7 @@ import {GuestGuard} from './guards/GuestGuard/guest-guard.guard';
 import {NotFoundComponent} from './not-found/not-found.component';
 import {AdminComponent} from './pages/admin/admin.component';
 import {ApplicationsComponent} from './applications-component/applications-component.component';
+import {CategoryComponent} from './category/category.component';
 
 export const routes: Routes = [
   {path: '', component: LangingComponent},
@@ -36,7 +37,9 @@ export const routes: Routes = [
       { path: 'company/edit/:id', component: CompanyComponent },
       { path: 'pubs', component: PublicationComponent },
       { path: 'pubs/edit/:id', component: PublicationComponent },
-      { path: 'applications', component: ApplicationsComponent }
+      { path: 'applications', component: ApplicationsComponent },
+      { path: 'categories', component: CategoryComponent }
+
     ]
   },
 

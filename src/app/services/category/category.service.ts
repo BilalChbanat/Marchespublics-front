@@ -40,7 +40,7 @@ export class CategoryService {
   }
 
   createCategory(category: Category): Observable<Category> {
-    return this.http.post<Category>(this.apiUrl, category);
+    return this.http.post<Category>(`${this.apiUrl}/save`, category);
   }
 
   updateCategory(id: number, category: Category): Observable<Category> {

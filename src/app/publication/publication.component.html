@@ -498,9 +498,7 @@
                 </div>
               </div>
 
-              <!-- Action buttons -->
-              <div class="flex justify-end space-x-2 mt-3">
-
+              <div *ngIf="isAdminRoute()" class="flex justify-end space-x-2 mt-3">
                 <button
                   (click)="editPublication(publication, $event)"
                   class="text-blue-600 hover:text-blue-800 text-sm font-medium"

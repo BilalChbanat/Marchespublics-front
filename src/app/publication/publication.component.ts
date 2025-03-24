@@ -8,6 +8,7 @@ import {ApplicationDto, ApplicationService} from '../services/application/applic
 import {FileUploadService} from '../services/file-upload/file-upload.service';
 import {CompanyService} from '../services/company/company.service';
 import {AuthService} from '../services/auth/auth.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-publication',
@@ -66,7 +67,8 @@ export class PublicationComponent implements OnInit {
     private applicationService: ApplicationService,
     private fileUploadService: FileUploadService,
     private companyService: CompanyService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     this.publicationForm = this.fb.group({
       title: ['', [Validators.required]],
@@ -547,5 +549,9 @@ export class PublicationComponent implements OnInit {
       }
     }
     return 2; // Change this to a valid company ID that exists in your database
+  }
+
+  isAdminRoute(): boolean {
+    return this.router.url.includes('/admin/');
   }
 }
