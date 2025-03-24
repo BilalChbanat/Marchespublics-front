@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, HostListener, Directive, ElementRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { NgIf } from '@angular/common';
+import {JsonPipe, NgIf} from '@angular/common';
 import { AuthService, User } from '../../services/auth/auth.service';
 import { Subscription } from 'rxjs';
 
@@ -27,7 +27,8 @@ export class ClickOutsideDirective {
   standalone: true,
   imports: [
     NgIf,
-    RouterLink
+    RouterLink,
+    JsonPipe
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -40,7 +41,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private userSubscription: Subscription | null = null;
 
   constructor(
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) {}
 
@@ -52,7 +53,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Clean up subscription to prevent memory leaks
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }

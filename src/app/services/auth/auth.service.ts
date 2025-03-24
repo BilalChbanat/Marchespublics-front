@@ -29,6 +29,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  roles?: string[];
 }
 
 @Injectable({
@@ -58,6 +59,17 @@ export class AuthService {
     }
   }
 
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+
+    if (!user.roles || user.roles.length === 0) {
+      return false;
+    }
+
+    return user.roles.includes(role);
+  }
+
   signup(signupRequest: SignupRequest): Observable<SignupResponse> {
     return this.http.post<SignupResponse>(`${this.apiUrl}/signup`, signupRequest);
   }
@@ -69,10 +81,15 @@ export class AuthService {
       .pipe(
         tap(response => {
           console.log('Raw login response:', response);
+          console.log('Raw API response:', response); // <-- Add this
+          console.log('JWT Token:', response.token);
 
           if (response && response.token) {
             // Store token in localStorage
             localStorage.setItem('auth_token', response.token);
+
+            const tokenPayload = this.decodeJwtToken(response.token);
+            console.log('Decoded Token:', tokenPayload);
 
             // Create user object from available data
             let userData: User;
@@ -82,7 +99,8 @@ export class AuthService {
               userData = {
                 id: response.user.id,
                 username: response.user.username,
-                email: response.user.email
+                email: response.user.email,
+                roles: response.user.roles || []
               };
             } else {
               try {
@@ -90,13 +108,19 @@ export class AuthService {
                 userData = {
                   id: tokenPayload.id || 0,
                   username: tokenPayload.sub || email.split('@')[0],
-                  email: tokenPayload.email || email
+                  email: tokenPayload.email || email,
+                  // Try different property names based on your backend
+                  roles: tokenPayload.roles ||
+                    tokenPayload.authorities ||
+                    tokenPayload.role ||
+                    [] // Fallback to empty array
                 };
               } catch (error) {
                 userData = {
                   id: 0,
                   username: email.split('@')[0],
-                  email: email
+                  email: email,
+                  roles: []
                 };
               }
             }
