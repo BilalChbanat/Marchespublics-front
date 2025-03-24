@@ -6,12 +6,12 @@ import {NgClass, NgForOf, NgIf, DatePipe} from '@angular/common';
 import {PublicationService, Publication} from '../../services/publication/publication.service';
 import {CategoryService, Category} from '../../services/category/category.service';
 import {RouterModule} from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgClass, NgForOf, NgIf, DatePipe, RouterModule, FormsModule],
+  imports: [NgClass, NgForOf, NgIf, DatePipe, RouterModule, FormsModule, ReactiveFormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -22,16 +22,22 @@ export class DashboardComponent implements OnInit {
   userDepartment: Department | null = null;
   userApplications: ApplicationDto[] = [];
 
-  // Modal state variables
   selectedPublication: Publication | null = null;
-  isViewMode: boolean = true; // Controls if publication modal is in view or edit mode
-  newPublication: Publication | null = null; // For adding new publication
+  isViewMode: boolean = true;
+  newPublication: Publication | null = null;
+
+  showForm: boolean = false;
+  editMode: boolean = false;
 
   selectedCompanyForEdit: Company | null = null;
   selectedCompanyForView: Company | null = null;
   newCompany: Company | null = null;
 
   selectedApplicationForView: ApplicationDto | null = null;
+
+  publicationForm: FormGroup;
+  isSubmitting: boolean = false;
+  departments: any[] = [];
 
   loading = {
     companies: false,
@@ -74,14 +80,73 @@ export class DashboardComponent implements OnInit {
     private departmentService: DepartmentService,
     private applicationService: ApplicationService,
     private publicationService: PublicationService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private fb: FormBuilder
   ) {
+    this.publicationForm = this.fb.group({
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      status: ['DRAFT', Validators.required],
+      estimatedBudget: [0, [Validators.required, Validators.min(0)]],
+      deadlineDate: ['', Validators.required],
+      categoryId: ['', Validators.required],
+      departmentId: [{ value: '', disabled: true }, Validators.required]
+    });
   }
 
   ngOnInit(): void {
     this.loadUserData();
     this.loadCategories();
     this.loadPublicationApplications();
+    this.loadDepartments();
+  }
+
+  get f() {
+    return this.publicationForm.controls;
+  }
+
+  onSubmit(): void {
+    if (this.publicationForm.invalid) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    const formData = this.publicationForm.getRawValue();
+
+    formData.departmentId = this.userDepartment?.id || formData.departmentId;
+
+    if (this.editMode && this.selectedPublication) {
+      const updatedPublication = {
+        ...this.selectedPublication,
+        ...formData
+      };
+
+      this.publicationService.updatePublication(updatedPublication.id, updatedPublication)
+        .subscribe({
+          next: () => {
+            this.loadUserPublications();
+            this.toggleForm();
+            this.isSubmitting = false;
+          },
+          error: (error) => {
+            console.error('Error updating publication:', error);
+            this.isSubmitting = false;
+          }
+        });
+    } else {
+      this.publicationService.createPublication(formData)
+        .subscribe({
+          next: () => {
+            this.loadUserPublications();
+            this.toggleForm();
+            this.isSubmitting = false;
+          },
+          error: (error) => {
+            console.error('Error creating publication:', error);
+            this.isSubmitting = false;
+          }
+        });
+    }
   }
 
   private loadUserData(): void {
@@ -196,7 +261,7 @@ export class DashboardComponent implements OnInit {
       : 0;
   }
 
-  // Company actions
+
   showCompanyDetailsModal(company: Company): void {
     this.selectedCompanyForView = {...company};
   }
@@ -274,18 +339,6 @@ export class DashboardComponent implements OnInit {
     this.isViewMode = true;
   }
 
-  showAddPublicationModal(): void {
-    // Initialize new publication with default values
-    this.newPublication = {
-      title: '',
-      description: '',
-      deadlineDate: new Date().toISOString(),
-      estimatedBudget: 0,
-      categoryId: this.categories.length > 0 ? this.categories[0].id : 0,
-      departmentId: this.userDepartment?.id || 0,
-      status: 'DRAFT'
-    };
-  }
 
   deletePublication(id: number): void {
     if (confirm('Are you sure you want to delete this publication?')) {
@@ -469,4 +522,52 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  showAddPublicationModal(): void {
+    this.editMode = false;
+    this.resetForm();
+    this.showForm = true;
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (departments) => {
+        this.departments = departments;
+      },
+      error: (error) => {
+        console.error('Error loading departments:', error);
+      }
+    });
+  }
+
+  toggleForm(): void {
+    this.showForm = !this.showForm;
+  }
+
+  resetForm(): void {
+    this.publicationForm.reset({
+      title: '',
+      description: '',
+      status: 'DRAFT',
+      estimatedBudget: 0,
+      deadlineDate: this.formatDateForInput(new Date()),
+      categoryId: this.categories.length > 0 ? this.categories[0].id : '',
+      departmentId: this.userDepartment?.id || ''
+    });
+  }
+
+  populateForm(publication: Publication): void {
+    this.publicationForm.setValue({
+      title: publication.title,
+      description: publication.description,
+      status: publication.status,
+      estimatedBudget: publication.estimatedBudget,
+      deadlineDate: this.formatDateForInput(new Date(publication.deadlineDate || new Date())),
+      categoryId: publication.categoryId,
+      departmentId: publication.departmentId
+    });
+  }
+
+  formatDateForInput(date: Date): string {
+    return date.toISOString().slice(0, 16);
+  }
 }

@@ -595,6 +595,205 @@
     </div>
   </div>
 
+  <!-- Modal Backdrop -->
+  <div *ngIf="showForm"
+       class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 px-4 overflow-y-auto">
+    <!-- Modal Content -->
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-90vh overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 flex justify-between items-center">
+        <h3 class="text-xl font-bold text-white">
+          {{ editMode ? 'Edit Publication' : 'Add New Publication' }}
+        </h3>
+        <button
+          type="button"
+          (click)="toggleForm()"
+          class="text-white hover:text-gray-200 focus:outline-none"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div *ngIf="showForm"
+           class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 px-4 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6">
+          <!-- Modal Header -->
+          <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800">
+              {{ editMode ? 'Edit Publication' : 'Create New Publication' }}
+            </h3>
+            <button
+              type="button"
+              (click)="toggleForm()"
+              class="text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <form [formGroup]="publicationForm" (ngSubmit)="onSubmit()" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Title -->
+              <div class="md:col-span-2">
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  formControlName="title"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-2 px-3"
+                  [ngClass]="{'border-red-500': f['title'].invalid && f['title'].touched}"
+                  placeholder="Enter publication title"
+                />
+                <span *ngIf="f['title'].invalid && f['title'].touched" class="text-red-600 text-sm mt-1 block">
+            Title is required
+          </span>
+              </div>
+
+              <!-- Status -->
+              <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  id="status"
+                  formControlName="status"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-2 px-3"
+                  [ngClass]="{'border-red-500': f['status'].invalid && f['status'].touched}"
+                >
+                  <option value="DRAFT">Draft</option>
+                  <option value="PUBLISHED">Published</option>
+                  <option value="CANCELLED">Cancelled</option>
+                  <option value="COMPLETED">Completed</option>
+                </select>
+                <span *ngIf="f['status'].invalid && f['status'].touched" class="text-red-600 text-sm mt-1 block">
+            Status is required
+          </span>
+              </div>
+
+              <!-- Deadline Date -->
+              <div>
+                <label for="deadlineDate" class="block text-sm font-medium text-gray-700 mb-1">Deadline Date</label>
+                <input
+                  type="datetime-local"
+                  id="deadlineDate"
+                  formControlName="deadlineDate"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-2 px-3"
+                  [ngClass]="{'border-red-500': f['deadlineDate'].invalid && f['deadlineDate'].touched}"
+                />
+                <span *ngIf="f['deadlineDate'].invalid && f['deadlineDate'].touched"
+                      class="text-red-600 text-sm mt-1 block">
+            Deadline date is required
+          </span>
+              </div>
+
+              <!-- Estimated Budget -->
+              <div>
+                <label for="estimatedBudget" class="block text-sm font-medium text-gray-700 mb-1">Estimated Budget (MAD)</label>
+                <input
+                  type="number"
+                  id="estimatedBudget"
+                  formControlName="estimatedBudget"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-2 px-3"
+                  [ngClass]="{'border-red-500': f['estimatedBudget'].invalid && f['estimatedBudget'].touched}"
+                  placeholder="e.g. 5000000"
+                  step="0.01"
+                />
+                <span *ngIf="f['estimatedBudget'].invalid && f['estimatedBudget'].touched"
+                      class="text-red-600 text-sm mt-1 block">
+            Valid budget amount is required
+          </span>
+              </div>
+
+              <!-- Category -->
+              <div>
+                <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  id="categoryId"
+                  formControlName="categoryId"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-2 px-3"
+                  [ngClass]="{'border-red-500': f['categoryId'].invalid && f['categoryId'].touched}"
+                >
+                  <option value="">Select a category</option>
+                  <option *ngFor="let category of categories" [value]="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
+                <span *ngIf="f['categoryId'].invalid && f['categoryId'].touched"
+                      class="text-red-600 text-sm mt-1 block">
+            Category is required
+          </span>
+              </div>
+
+              <!-- Department (Hidden) -->
+              <input type="hidden" formControlName="departmentId">
+
+              <!-- Department (Display only) -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <div class="block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-500">
+                  {{ userDepartment?.name || 'Your Department' }}
+                </div>
+              </div>
+
+              <!-- Description - Moved to the bottom and spans full width -->
+              <div class="md:col-span-2">
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  id="description"
+                  formControlName="description"
+                  rows="5"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base py-2 px-3"
+                  [ngClass]="{'border-red-500': f['description'].invalid && f['description'].touched}"
+                  placeholder="Enter detailed description of the tender"
+                ></textarea>
+                <span *ngIf="f['description'].invalid && f['description'].touched"
+                      class="text-red-600 text-sm mt-1 block">
+            Description is required
+          </span>
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
+              <button
+                type="button"
+                (click)="resetForm()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                (click)="toggleForm()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                [disabled]="isSubmitting || publicationForm.invalid"
+                class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+          <span *ngIf="isSubmitting" class="inline-block mr-2">
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+                {{ isSubmitting ? 'Saving...' : (editMode ? 'Update Publication' : 'Create Publication') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Existing company modals remain the same -->
 </div>
 
